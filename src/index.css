@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-gray-50 text-gray-900;
+}
+
+.arabic-text {
+  @apply font-arabic text-right text-2xl leading-loose;
+}
+
+.container-custom {
+  @apply container mx-auto px-4 py-6;
+}
+
+/* Custom styling for components */
+.card-hover {
+  @apply transition-all duration-300 hover:shadow-lg hover:scale-[1.02];
+}
+
+.btn-primary {
+  @apply bg-primary hover:bg-primary/90 text-white font-medium py-2 px-4 rounded-md transition-colors;
+}
+
+.btn-secondary {
+  @apply bg-secondary hover:bg-secondary/90 text-white font-medium py-2 px-4 rounded-md transition-colors;
+}
+
+.input-search {
+  @apply w-full p-3 rounded-lg border-2 border-gray-300 focus:border-primary focus:outline-none transition-colors;
+}
