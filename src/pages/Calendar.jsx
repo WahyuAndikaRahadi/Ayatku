@@ -511,10 +511,7 @@ const Calendar = () => {
 
               <div className="flex flex-col items-center">
                 <h2 className="text-xl font-bold text-gray-800">
-                  {activeMonth && monthsNames && monthsNames[activeMonth - 1]} {activeYear}
-                  <span className="ml-2 text-sm font-medium px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full">
-                    {activeYear} H
-                  </span>
+                  {activeMonth && monthsNames && monthsNames[activeMonth - 1]} {activeYear} H
                 </h2>
 
                 {/* Back to today button */}
