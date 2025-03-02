@@ -9,6 +9,10 @@ import SurahDetail from './components/SurahDetail'
 import TafsirDetail from './components/TafsirDetail'
 import HadithDetail from './components/HadithDetail'
 import Prayer from './pages/Prayer'
+import AsmaulHusna from './pages/AsmaulHusna'
+import Doa from './pages/Doa'
+import DoaDetail from './components/DoaDetail'
+import Calendar from './pages/Calendar'
 
 function App() {
   return (
@@ -21,7 +25,11 @@ function App() {
           <Route path="/quran" element={<Quran />} />
           <Route path="/surah/:id" element={<SurahDetail />} />
           <Route path="/tafsir/:id" element={<TafsirDetail />} />
+          <Route path="/doa/:category/:id"  element={<DoaDetail />} />
           <Route path="/hadith" element={<Hadith />} />
+          <Route path="/asmaulhusna" element={<AsmaulHusna />} />
+          <Route path="/doa" element={<Doa />} />
+          <Route path="/calendar" element={<Calendar />} />
           <Route path="/prayer" element={<Prayer />} />
           <Route path="/hadith/:bookId/:number" element={<HadithDetail />} />
         </Routes>

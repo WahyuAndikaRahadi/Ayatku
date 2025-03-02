@@ -101,6 +101,48 @@ const Navbar = () => {
               Hadist
             </a>
             <a
+              href="/asmaulhusna"
+              className={`px-3 py-2 rounded-md font-medium transition-colors ${
+                isActive('/asmaulhusna') 
+                  ? 'text-emerald-600 font-semibold' 
+                  : 'text-gray-700 hover:text-emerald-600'
+              }`}
+              onClick={(e) => {
+                e.preventDefault();
+                handleNavigation('/asmaulhusna');
+              }}
+            >
+              Asmaul Husna
+            </a>
+            <a
+              href="/doa"
+              className={`px-3 py-2 rounded-md font-medium transition-colors ${
+                isActive('/doa') 
+                  ? 'text-emerald-600 font-semibold' 
+                  : 'text-gray-700 hover:text-emerald-600'
+              }`}
+              onClick={(e) => {
+                e.preventDefault();
+                handleNavigation('/doa');
+              }}
+            >
+              Doa-doa
+            </a>
+            <a
+              href="/calendar"
+              className={`px-3 py-2 rounded-md font-medium transition-colors ${
+                isActive('/calendar') 
+                  ? 'text-emerald-600 font-semibold' 
+                  : 'text-gray-700 hover:text-emerald-600'
+              }`}
+              onClick={(e) => {
+                e.preventDefault();
+                handleNavigation('/calendar');
+              }}
+            >
+              Kalender Islam
+            </a>
+            <a
               href="/prayer"
               className={`px-3 py-2 rounded-md font-medium transition-colors ${
                 isActive('/prayer') 
@@ -198,6 +240,48 @@ const Navbar = () => {
               }}
             >
               Hadist
+            </a>
+            <a
+              href="/asmaulhusna"
+              className={`block px-3 py-2 rounded-md font-medium transition-colors ${
+                isActive('/asmaulhusna') 
+                  ? 'text-emerald-600 bg-gray-50 font-semibold' 
+                  : 'text-gray-700 hover:text-emerald-600 hover:bg-gray-50'
+              }`}
+              onClick={(e) => {
+                e.preventDefault();
+                handleNavigation('/asmaulhusna');
+              }}
+            >
+              Asmaul Husna
+            </a>
+            <a
+              href="/doa"
+              className={`block px-3 py-2 rounded-md font-medium transition-colors ${
+                isActive('/doa') 
+                  ? 'text-emerald-600 bg-gray-50 font-semibold' 
+                  : 'text-gray-700 hover:text-emerald-600 hover:bg-gray-50'
+              }`}
+              onClick={(e) => {
+                e.preventDefault();
+                handleNavigation('/doa');
+              }}
+            >
+              Doa-doa
+            </a>
+            <a
+              href="/calendar"
+              className={`block px-3 py-2 rounded-md font-medium transition-colors ${
+                isActive('/calendar') 
+                  ? 'text-emerald-600 bg-gray-50 font-semibold' 
+                  : 'text-gray-700 hover:text-emerald-600 hover:bg-gray-50'
+              }`}
+              onClick={(e) => {
+                e.preventDefault();
+                handleNavigation('/calendar');
+              }}
+            >
+              Kalender Islam
             </a>
             <a
               href="/prayer"
