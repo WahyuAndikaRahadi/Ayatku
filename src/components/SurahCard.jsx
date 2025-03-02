@@ -26,8 +26,8 @@ const SurahCard = ({ surah, onClick }) => {
         </div>
         
         <div className="flex justify-between items-center text-sm text-gray-500 pt-3 border-t border-gray-100">
-          <p>{surah.tempat_turun === 'mekah' ? 'Makkiyah' : 'Madaniyah'}</p>
-          <p>{surah.jumlah_ayat} Ayat</p>
+          <p>{surah.tempatTurun === 'Mekah' ? 'Makkiyah' : 'Madaniyah'}</p>
+          <p>{surah.jumlahAyat} Ayat</p>
         </div>
       </div>
     </motion.div>
