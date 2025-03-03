@@ -27,8 +27,8 @@ const Navbar = () => {
     <nav className="bg-white shadow-md">
       <div className="container-custom mx-auto px-4">
         <div className="flex justify-between items-center h-16">
-          {/* Logo and Brand Name */}
-          <div className="flex items-center">
+          {/* Logo and Brand Name - Positioned more to the left edge */}
+          <div className="flex items-center ml-0 md:-ml-3">
             <a 
               href="/" 
               className="flex items-center"
@@ -42,11 +42,11 @@ const Navbar = () => {
             </a>
           </div>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex space-x-6">
+          {/* Desktop Navigation - With more space for navigation items */}
+          <div className="hidden md:flex space-x-4 md:ml-6 flex-grow justify-center">
             <a
               href="/"
-              className={`px-3 py-2 rounded-md font-medium transition-colors ${
+              className={`px-2 py-2 rounded-md font-medium transition-colors ${
                 isActive('/') 
                   ? 'text-emerald-600 font-semibold' 
                   : 'text-gray-700 hover:text-emerald-600'
@@ -60,7 +60,7 @@ const Navbar = () => {
             </a>
             <a
               href="/about"
-              className={`px-3 py-2 rounded-md font-medium transition-colors ${
+              className={`px-2 py-2 rounded-md font-medium transition-colors ${
                 isActive('/about') 
                   ? 'text-emerald-600 font-semibold' 
                   : 'text-gray-700 hover:text-emerald-600'
@@ -74,7 +74,7 @@ const Navbar = () => {
             </a>
             <a
               href="/quran"
-              className={`px-3 py-2 rounded-md font-medium transition-colors ${
+              className={`px-2 py-2 rounded-md font-medium transition-colors ${
                 isActive('/quran') 
                   ? 'text-emerald-600 font-semibold' 
                   : 'text-gray-700 hover:text-emerald-600'
@@ -88,7 +88,7 @@ const Navbar = () => {
             </a>
             <a
               href="/hadith"
-              className={`px-3 py-2 rounded-md font-medium transition-colors ${
+              className={`px-2 py-2 rounded-md font-medium transition-colors ${
                 isActive('/hadith') 
                   ? 'text-emerald-600 font-semibold' 
                   : 'text-gray-700 hover:text-emerald-600'
@@ -102,7 +102,7 @@ const Navbar = () => {
             </a>
             <a
               href="/asmaulhusna"
-              className={`px-3 py-2 rounded-md font-medium transition-colors ${
+              className={`px-2 py-2 rounded-md font-medium transition-colors ${
                 isActive('/asmaulhusna') 
                   ? 'text-emerald-600 font-semibold' 
                   : 'text-gray-700 hover:text-emerald-600'
@@ -116,7 +116,7 @@ const Navbar = () => {
             </a>
             <a
               href="/doa"
-              className={`px-3 py-2 rounded-md font-medium transition-colors ${
+              className={`px-2 py-2 rounded-md font-medium transition-colors ${
                 isActive('/doa') 
                   ? 'text-emerald-600 font-semibold' 
                   : 'text-gray-700 hover:text-emerald-600'
@@ -130,7 +130,7 @@ const Navbar = () => {
             </a>
             <a
               href="/calendar"
-              className={`px-3 py-2 rounded-md font-medium transition-colors ${
+              className={`px-2 py-2 rounded-md font-medium transition-colors ${
                 isActive('/calendar') 
                   ? 'text-emerald-600 font-semibold' 
                   : 'text-gray-700 hover:text-emerald-600'
@@ -140,11 +140,39 @@ const Navbar = () => {
                 handleNavigation('/calendar');
               }}
             >
-              Kalender Islam
+              Kalender
+            </a>
+            <a
+              href="/kiblat"
+              className={`px-2 py-2 rounded-md font-medium transition-colors ${
+                isActive('/kiblat') 
+                  ? 'text-emerald-600 font-semibold' 
+                  : 'text-gray-700 hover:text-emerald-600'
+              }`}
+              onClick={(e) => {
+                e.preventDefault();
+                handleNavigation('/kiblat');
+              }}
+            >
+              Kiblat
+            </a>
+            <a
+              href="/blog"
+              className={`px-2 py-2 rounded-md font-medium transition-colors ${
+                isActive('/blog') 
+                  ? 'text-emerald-600 font-semibold' 
+                  : 'text-gray-700 hover:text-emerald-600'
+              }`}
+              onClick={(e) => {
+                e.preventDefault();
+                handleNavigation('/blog');
+              }}
+            >
+               Artikel Islami
             </a>
             <a
               href="/prayer"
-              className={`px-3 py-2 rounded-md font-medium transition-colors ${
+              className={`px-2 py-2 rounded-md font-medium transition-colors ${
                 isActive('/prayer') 
                   ? 'text-emerald-600 font-semibold' 
                   : 'text-gray-700 hover:text-emerald-600'
@@ -154,10 +182,12 @@ const Navbar = () => {
                 handleNavigation('/prayer');
               }}
             >
-              Jadwal Sholat & Imsak
+              Jadwal Sholat
             </a>
-    
           </div>
+
+          {/* Empty div for better spacing in desktop view */}
+          <div className="hidden md:block w-20"></div>
 
           {/* Mobile Menu Button */}
           <div className="md:hidden">
@@ -175,7 +205,7 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu - Unchanged */}
       {isOpen && (
         <motion.div 
           initial={{ opacity: 0, height: 0 }}
@@ -284,6 +314,34 @@ const Navbar = () => {
               Kalender Islam
             </a>
             <a
+              href="/kiblat"
+              className={`block px-3 py-2 rounded-md font-medium transition-colors ${
+                isActive('/kiblat') 
+                  ? 'text-emerald-600 bg-gray-50 font-semibold' 
+                  : 'text-gray-700 hover:text-emerald-600 hover:bg-gray-50'
+              }`}
+              onClick={(e) => {
+                e.preventDefault();
+                handleNavigation('/kiblat');
+              }}
+            >
+              Arah Kiblat
+            </a>
+            <a
+              href="/blog"
+              className={`block px-3 py-2 rounded-md font-medium transition-colors ${
+                isActive('/blog') 
+                  ? 'text-emerald-600 bg-gray-50 font-semibold' 
+                  : 'text-gray-700 hover:text-emerald-600 hover:bg-gray-50'
+              }`}
+              onClick={(e) => {
+                e.preventDefault();
+                handleNavigation('/blog');
+              }}
+            >
+              Artikel Islami
+            </a>
+            <a
               href="/prayer"
               className={`block px-3 py-2 rounded-md font-medium transition-colors ${
                 isActive('/prayer') 
@@ -297,7 +355,6 @@ const Navbar = () => {
             >
               Jadwal Sholat & Imsak
             </a>
-            
           </div>
         </motion.div>
       )}

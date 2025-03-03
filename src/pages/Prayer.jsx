@@ -806,6 +806,7 @@ const Prayer = () => {
           { name: 'Dzuhur', time: prayerTimes.dzuhur, icon: '🌤️' },
           { name: 'Ashar', time: prayerTimes.ashar, icon: '🌇' },
           { name: 'Maghrib', time: prayerTimes.maghrib, icon: '🌆' },
+          { name: 'Isya', time: prayerTimes.isya, icon: '🌃' },
         ].map((prayer, index) => {
             let prayerDate
             try {

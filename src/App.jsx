@@ -13,6 +13,8 @@ import AsmaulHusna from './pages/AsmaulHusna'
 import Doa from './pages/Doa'
 import DoaDetail from './components/DoaDetail'
 import Calendar from './pages/Calendar'
+import QiblaDirection from './pages/QiblaDirection'
+import IslamicBlog from './pages/IslamicBlog'
 
 function App() {
   return (
@@ -29,6 +31,8 @@ function App() {
           <Route path="/hadith" element={<Hadith />} />
           <Route path="/asmaulhusna" element={<AsmaulHusna />} />
           <Route path="/doa" element={<Doa />} />
+          <Route path="/blog" element={<IslamicBlog />} />
+          <Route path="/kiblat" element={<QiblaDirection />} />
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/prayer" element={<Prayer />} />
           <Route path="/hadith/:bookId/:number" element={<HadithDetail />} />
