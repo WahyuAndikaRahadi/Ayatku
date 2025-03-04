@@ -13,6 +13,7 @@ export default {
         neutral: "#1f2937",
       },
       fontFamily: {
+        sans: ['Milonga', 'sans-serif'], // jadi font default
         arabic: ['Amiri', 'serif'],
       }
     },
