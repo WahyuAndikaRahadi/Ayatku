@@ -14,7 +14,7 @@ const DoaDetail = () => {
   const categoryName = location.state?.categoryName || category
   
   const [prayer, setPrayer] = useState(prayerFromState || null)
-  const [loading, setLoading] = useState(!prayerFromState)
+  const [loading, setLoading] = useState(true) // Selalu mulai dengan loading = true
   const [error, setError] = useState(null)
   const [categoryPrayers, setCategoryPrayers] = useState([])
   const [nextPrayer, setNextPrayer] = useState(null)
@@ -22,11 +22,12 @@ const DoaDetail = () => {
   const [totalPrayers, setTotalPrayers] = useState(0)
 
   useEffect(() => {
+    // Reset state ketika URL berubah
+    setLoading(true)
+    setError(null)
+    
     const fetchPrayerData = async () => {
       try {
-        setLoading(true)
-        setError(null)
-        
         // Fetch all prayers for this category to determine navigation
         const categoryResponse = await axios.get(
           `https://api.myquran.com/v2/doa/sumber/${category}`
@@ -40,14 +41,12 @@ const DoaDetail = () => {
           // Find current prayer index
           const currentIndex = parseInt(id)
           
-          // Set prayer if not already set from state
-          if (!prayerFromState) {
-            const foundPrayer = allPrayers[currentIndex]
-            if (foundPrayer) {
-              setPrayer(foundPrayer)
-            } else {
-              throw new Error('Doa tidak ditemukan')
-            }
+          // Selalu ambil doa dari response API, bukan dari state
+          const foundPrayer = allPrayers[currentIndex]
+          if (foundPrayer) {
+            setPrayer(foundPrayer)
+          } else {
+            throw new Error('Doa tidak ditemukan')
           }
           
           // Set next and previous prayers
@@ -88,13 +87,12 @@ const DoaDetail = () => {
     }
     
     fetchPrayerData()
-  }, [category, id, prayerFromState])
+  }, [category, id]) // Hanya bergantung pada category dan id, bukan prayerFromState
 
   const handlePreviousPrayer = () => {
     if (prevPrayer) {
       navigate(`/doa/${category}/${prevPrayer.index}`, {
         state: {
-          prayer: categoryPrayers[prevPrayer.index],
           categoryName: categoryName
         }
       })
@@ -113,7 +111,6 @@ const DoaDetail = () => {
     if (nextPrayer) {
       navigate(`/doa/${category}/${nextPrayer.index}`, {
         state: {
-          prayer: categoryPrayers[nextPrayer.index],
           categoryName: categoryName
         }
       })
@@ -175,6 +172,7 @@ const DoaDetail = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
+        key={`doa-${category}-${id}`} // Tambahkan key untuk memaksa re-render
       >
         <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
           <div className="mb-4 flex justify-between items-center">
@@ -215,11 +213,11 @@ const DoaDetail = () => {
           )}
         </div>
 
-        <div className="flex justify-between mt-6">
+        <div className="flex flex-col sm:flex-row justify-between gap-3 mt-6">
           <button
             onClick={handlePreviousPrayer}
             disabled={!prevPrayer}
-            className={`px-4 py-2 rounded-md flex items-center ${
+            className={`px-3 py-2 rounded-md flex items-center justify-center ${
               !prevPrayer
                 ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
                 : 'bg-primary text-white hover:bg-primary-dark'
@@ -228,18 +226,23 @@ const DoaDetail = () => {
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
             </svg>
-            Doa Sebelumnya {prevPrayer && `(${prevPrayer.title})`}
+            <span className="text-sm sm:text-base">
+              Doa Sebelumnya {prevPrayer && <span className="hidden xs:inline">{`(${prevPrayer.title})`}</span>}
+            </span>
           </button>
+          
           <button
             onClick={handleNextPrayer}
             disabled={!nextPrayer}
-            className={`px-4 py-2 rounded-md flex items-center ${
+            className={`px-3 py-2 rounded-md flex items-center justify-center ${
               !nextPrayer
                 ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
                 : 'bg-primary text-white hover:bg-primary-dark'
             }`}
           >
-            Doa Selanjutnya {nextPrayer && `(${nextPrayer.title})`}
+            <span className="text-sm sm:text-base">
+              Doa Selanjutnya {nextPrayer && <span className="hidden xs:inline">{`(${nextPrayer.title})`}</span>}
+            </span>
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
             </svg>

@@ -15,6 +15,7 @@ import DoaDetail from './components/DoaDetail'
 import Calendar from './pages/Calendar'
 import QiblaDirection from './pages/QiblaDirection'
 import IslamicBlog from './pages/IslamicBlog'
+import NotFound from './pages/NotFound'
 
 function App() {
   return (
@@ -36,6 +37,7 @@ function App() {
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/prayer" element={<Prayer />} />
           <Route path="/hadith/:bookId/:number" element={<HadithDetail />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
       <Footer />

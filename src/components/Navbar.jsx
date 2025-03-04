@@ -182,7 +182,7 @@ const Navbar = () => {
                 handleNavigation('/prayer');
               }}
             >
-              Jadwal Sholat
+              Jadwal Sholat 
             </a>
           </div>
 
