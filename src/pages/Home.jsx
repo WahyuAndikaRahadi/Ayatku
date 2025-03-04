@@ -30,7 +30,7 @@ const Home = () => {
                 Platform Islami Lengkap untuk Kebutuhan Spiritual Anda
               </h1>
               <p className="text-lg mb-8 text-white/90">
-                Al-Quran, Hadith, Asmaul Husna, Kalender Islam, Kiblat, dan berbagai konten islami lainnya dalam satu aplikasi untuk membantu perjalanan spiritual Anda.
+                Al-Quran, Hadith, Asmaul Husna, Kalender Islam, Kiblat, dan berbagai konten islami lainnya dalam satu website untuk membantu perjalanan spiritual Anda.
               </p>
               <Link to="/quran" className="bg-white text-primary hover:bg-white/90 font-bold py-3 px-6 rounded-lg inline-flex items-center">
                 <FaQuran className="mr-2" /> Baca Al-Quran
