@@ -582,28 +582,27 @@ const IslamicBlog = () => {
         </p>
       </motion.div>
 
-      <div className="flex justify-between items-center mb-8">
-        <button
-          onClick={() => refreshComments()}
-          className="btn-secondary flex items-center justify-center"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-          Refresh Komentar
-        </button>
-        
-        <button
-          onClick={handleAddArticleClick}
-          className="btn-primary flex items-center justify-center"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          Tulis Artikel
-        </button>
-      </div>
-
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-8 w-full">
+      <button
+        onClick={() => refreshComments()}
+        className="btn-secondary flex items-center justify-center w-full sm:w-auto px-4 py-2 rounded"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+        Refresh Komentar
+      </button>
+      
+      <button
+        onClick={handleAddArticleClick}
+        className="btn-primary flex items-center justify-center w-full sm:w-auto px-4 py-2 rounded"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+        </svg>
+        Tulis Artikel
+      </button>
+    </div>
       {/* Last update indicator */}
       {lastCommentFetch && (
         <div className="text-center text-sm text-gray-500 mb-6">
