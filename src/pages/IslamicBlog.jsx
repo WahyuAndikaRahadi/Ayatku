@@ -335,14 +335,53 @@ const IslamicBlog = () => {
   const formatDate = (dateString) => {
     if (!dateString) return '';
     
-    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    // Check if dateString is already a Date object
+    if (dateString instanceof Date) {
+      const options = { year: 'numeric', month: 'long', day: 'numeric' };
+      return dateString.toLocaleDateString('id-ID', options);
+    }
+    
+    // Check if it's a string
+    if (typeof dateString !== 'string') {
+      try {
+        // Convert to string first
+        dateString = String(dateString);
+      } catch (e) {
+        console.error('Cannot convert to string:', dateString);
+        return '';
+      }
+    }
+    
     try {
-      return new Date(dateString).toLocaleDateString('id-ID', options);
+      // Handle different possible date formats
+      let date;
+      
+      // If it looks like a timestamp or ISO string
+      if (/^\d+$/.test(dateString)) {
+        date = new Date(parseInt(dateString));
+      } else if (dateString.includes('/')) {
+        // Format like 04/03/2025 12:20:49
+        const [datePart] = dateString.split(' ');
+        const [day, month, year] = datePart.split('/').map(Number);
+        date = new Date(year, month - 1, day);
+      } else {
+        // Default to standard Date parsing
+        date = new Date(dateString);
+      }
+      
+      // Validate the date
+      if (isNaN(date.getTime())) {
+        console.error('Invalid date:', dateString);
+        return dateString;
+      }
+      
+      const options = { year: 'numeric', month: 'long', day: 'numeric' };
+      return date.toLocaleDateString('id-ID', options);
     } catch (e) {
+      console.error('Date parsing error:', e, 'Original input:', dateString);
       return dateString;
     }
   };
-
   // Handle comment submission - ENHANCED VERSION
   const handleAddComment = async (articleTitle) => {
     // Menggunakan formId yang sudah benar
