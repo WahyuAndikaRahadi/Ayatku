@@ -1,29 +1,60 @@
+# 📖 Ayatku - Platform Islami Lengkap untuk Kebutuhan Spiritual Anda
 
-# 📖 Ayatku - Platform Baca Al-Quran Digital
+Ayatku adalah platform digital islami komprehensif yang tidak hanya menyediakan Al-Quran dengan terjemahan dan tafsir, tetapi juga berbagai fitur islami lainnya seperti Hadith, Asmaul Husna, Kalender Hijriah, dan banyak lagi. Dibangun menggunakan teknologi modern, Ayatku memberikan pengalaman spiritual yang lengkap, nyaman, dan mudah diakses kapan saja.
 
-Ayatku adalah platform digital modern untuk membaca Al-Quran lengkap dengan terjemahan dan tafsir dalam Bahasa Indonesia. Dibangun menggunakan teknologi modern, Ayatku memberikan pengalaman membaca yang nyaman dan mudah diakses kapan saja.
+
 
 ---
 
 ## ✨ Fitur Unggulan
 
-✅ **Baca Al-Quran Lengkap**  
-Tampilan ayat yang bersih dan nyaman, dilengkapi dengan terjemahan Bahasa Indonesia.
+### 🕋 Al-Quran
+- Tampilan ayat yang bersih dan nyaman
+- Terjemahan dan tafsir lengkap Bahasa Indonesia
+- Pencarian cepat dan akurat
+- Navigasi mudah antar surah dan ayat
 
-✅ **Pencarian Cepat dan Akurat**  
-Cari ayat atau surah dengan mudah menggunakan fitur pencarian.
+### 📜 Hadith-Hadith
+- Koleksi hadith shahih dari berbagai sumber terpercaya
+- Bukhari, Muslim, dan kitab hadith lainnya
+- Dilengkapi dengan penjelasan lengkap
+- Pencarian berdasarkan tema atau kata kunci
 
-✅ **Akses Tafsir Lengkap**  
-Baca tafsir untuk memahami makna dan konteks setiap ayat.
+### ⭐ Asmaul Husna
+- 99 nama Allah lengkap dengan arti
+- Penjelasan dan keutamaan dari setiap nama
+- Audio pengucapan yang benar
+- Fitur favorit untuk menghafalkan
 
-✅ **Desain Responsif**  
-Cocok diakses dari perangkat mobile, tablet, maupun desktop.
+### 📅 Kalender Hijriah
+- Kalender Hijriah lengkap dengan tanggal-tanggal penting
+- Konversi otomatis ke kalender Masehi
+- Pengingat hari-hari besar Islam
+- Tampilan visual yang intuitif
 
-✅ **Navigasi Mudah**  
-Antarmuka sederhana dan ramah pengguna.
+### 🧭 Pendeteksi Kiblat
+- Penentuan arah kiblat menggunakan teknologi GPS
+- Kompas digital terintegrasi
+- Panduan visual untuk arah yang tepat
+- Bekerja offline untuk kemudahan penggunaan
 
-✅ **Ringan & Cepat**  
-Dibangun dengan teknologi modern yang cepat dan efisien.
+### 📚 Artikel Islami
+- Konten edukatif tentang berbagai topik keagamaan
+- Diperbarui secara berkala
+- Fitur diskusi dengan komunitas
+- Kategori berdasarkan topik
+
+### 🤲 Kumpulan Doa
+- Doa-doa sehari-hari untuk berbagai situasi
+- Lafaz Arab, transliterasi, dan terjemahan
+- Tuntunan cara berdoa yang benar
+- Fitur favorit untuk doa yang sering digunakan
+
+### ⏰ Jadwal Sholat & Imsak
+- Jadwal sholat akurat berdasarkan lokasi
+- Pengingat otomatis untuk waktu sholat
+- Jadwal imsak selama Ramadhan
+- Penyesuaian otomatis untuk zona waktu
 
 ---
 
@@ -32,24 +63,31 @@ Dibangun dengan teknologi modern yang cepat dan efisien.
 ```
 src/
 ├── components/        // Komponen global seperti Navbar, Footer
-├── pages/              // Halaman utama, Quran, Tafsir, Pencarian
-├── assets/             // Gambar dan ikon
-├── App.jsx              // Routing utama
-├── main.jsx             // Entry point aplikasi
-└── styles/              // Konfigurasi styling (Tailwind CSS)
+├── pages/             // Halaman utama, Quran, Hadith, Asmaul Husna, dll
+├── assets/            // Gambar dan ikon
+├── hooks/             // Custom hooks untuk fitur seperti waktu sholat, kiblat
+├── contexts/          // Context providers untuk state global
+├── services/          // API services untuk data Al-Quran, Hadith, dll
+├── utils/             // Helper functions
+├── App.jsx            // Routing utama
+├── main.jsx           // Entry point aplikasi
+└── styles/            // Konfigurasi styling (Tailwind CSS)
 ```
 
 ---
 
 ## 💻 Teknologi yang Digunakan
 
-| Teknologi        | Fungsi                                    |
-|------------------|----------------------------------|
-| React            | Library utama untuk UI              |
-| React Router     | Navigasi antar halaman             |
-| Framer Motion    | Animasi dan efek visual              |
-| Tailwind CSS     | Styling cepat dan konsisten        |
-| Vite             | Build tool modern dan cepat       |
+| Teknologi        | Fungsi                                   |
+|------------------|------------------------------------------|
+| React            | Library utama untuk UI                   |
+| React Router     | Navigasi antar halaman                   |
+| Framer Motion    | Animasi dan efek visual                  |
+| Tailwind CSS     | Styling cepat dan konsisten              |
+| React Icons      | Ikon-ikon untuk UI                       |
+| Vite             | Build tool modern dan cepat              |
+| Geolocation API  | Untuk fitur kiblat dan jadwal sholat     |
+| LocalStorage     | Penyimpanan preferensi pengguna          |
 
 ---
 
@@ -82,11 +120,35 @@ http://localhost:5173
 
 ---
 
+## 🤝 Kontribusi
+
+Kami sangat terbuka untuk kontribusi dari siapapun. Berikut cara untuk berkontribusi:
+
+1. Fork repositori
+2. Buat branch fitur baru (`git checkout -b feature/fitur-baru`)
+3. Commit perubahan Anda (`git commit -m 'Menambahkan fitur baru'`)
+4. Push ke branch tersebut (`git push origin feature/fitur-baru`)
+5. Buat Pull Request
+
+---
+
+## 📱 Rencana Pengembangan
+
+- [ ] Aplikasi mobile (Android & iOS)
+- [ ] Mode dark/light
+- [ ] Fitur bookmark dan catatan personal
+- [ ] Fitur komunitas
+- [ ] Integrasi dengan smart speaker untuk tilawah
+- [ ] Fitur dzikir dan wirid
+
+---
+
 ## 📜 Lisensi
 
-Proyek ini menggunakan lisensi **MIT License**.  
+Proyek ini menggunakan lisensi **MIT License**.
+
 Dibuat dengan ❤️ oleh Wahyu Andika Rahadi.
 
 ---
 
-🚀 **Ayatku - Membaca Al-Quran Lebih Mudah dan Nyaman**
+🚀 **Ayatku - Platform Islami Lengkap untuk Kebutuhan Spiritual Anda**

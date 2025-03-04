@@ -176,6 +176,7 @@ const About = () => {
               <li>• Navigation Al-Quran</li>
               <li>• SweetAlert2 Notifications</li>
               <li>• Pagination Pages</li>
+              <li>• can listen to the Quran read by scholars</li>
             </ul>
           </div>
         </div>
