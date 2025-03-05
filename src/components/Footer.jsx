@@ -40,7 +40,7 @@ const Footer = () => {
                 <FaGithub size={20} />
               </a>
               <a 
-                href="https://instagram.com/WahyuAndikaRahadi" 
+                href="https://instagram.com/wahyuwuish" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-gray-300 hover:text-accent transition-colors"
