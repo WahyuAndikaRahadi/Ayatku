@@ -65,13 +65,10 @@ src/
 ├── components/        // Komponen global seperti Navbar, Footer
 ├── pages/             // Halaman utama, Quran, Hadith, Asmaul Husna, dll
 ├── assets/            // Gambar dan ikon
-├── hooks/             // Custom hooks untuk fitur seperti waktu sholat, kiblat
-├── contexts/          // Context providers untuk state global
-├── services/          // API services untuk data Al-Quran, Hadith, dll
-├── utils/             // Helper functions
+├── data/             // data data yang dipakai contoh JuzData
 ├── App.jsx            // Routing utama
 ├── main.jsx           // Entry point aplikasi
-└── styles/            // Konfigurasi styling (Tailwind CSS)
+└── index.css            // Konfigurasi styling (Tailwind CSS)
 ```
 
 ---
