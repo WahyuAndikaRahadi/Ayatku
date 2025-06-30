@@ -1,12 +1,12 @@
 {
   "rewrites": [
+      {
+        "source": "/(.*)",
+        "destination": "/"
+      },
     {
-      "source": "/api/(.*)",
-      "destination": "/backend/server.js"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/dist/index.html"
+      "source": "/api/:path*",
+      "destination": "/backend/:path*"
     }
   ],
   "builds": [
