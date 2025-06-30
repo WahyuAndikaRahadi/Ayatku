@@ -1,307 +1,194 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import axios from 'axios';
 import Swal from 'sweetalert2';
 
-// Google configuration
-const GOOGLE_SHEET_ID = '1L1IhSAiVgGLN6hspPVSJ9gzTxTKRzNyQJfupIs0PFGw';
-const GOOGLE_SHEET_TAB_NAME = 'DataArtikel';
-const GOOGLE_FORM_URL = 'https://forms.gle/HAQhE7oSPvkzaz4dA';
-
-// Konfigurasi untuk komentar
-const COMMENT_FORM_ID = '1FAIpQLScTWPdpsFkbKthbJI7LSFDlSu2RM1QGkNi3xmi2ZGFsAio3CA'; 
-const COMMENT_SHEET_ID = '1L1IhSAiVgGLN6hspPVSJ9gzTxTKRzNyQJfupIs0PFGw'; 
-const COMMENT_SHEET_TAB = 'DataKomentar';
-
-// Entry IDs for comment form (pastikan ini sesuai dengan ID di form Google)
-const ENTRY_ID_FOR_TITLE = '1894675344'; // ID untuk field judul artikel
-const ENTRY_ID_FOR_NAME = '559272181';   // ID untuk field nama komentator
-const ENTRY_ID_FOR_COMMENT = '1321687060'; // ID untuk field komentar
-
-// Using public CORS proxies to bypass CORS restrictions
-const CORS_PROXY = 'https://api.cors.lol/?url=';
-
-// URLs for Google Sheets with CORS proxy
-const SHEET_CSV_URL = `${CORS_PROXY}${encodeURIComponent(`https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${GOOGLE_SHEET_TAB_NAME}`)}`;
-const COMMENT_CSV_URL = `${CORS_PROXY}${encodeURIComponent(`https://docs.google.com/spreadsheets/d/${COMMENT_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${COMMENT_SHEET_TAB}`)}`;
-
+// Komponen utama blog
 const IslamicBlog = () => {
+  // State untuk menyimpan postingan blog
   const [posts, setPosts] = useState([]);
+  // State untuk menyimpan komentar, diorganisir berdasarkan judul postingan yang dinormalisasi
   const [comments, setComments] = useState({});
+  // State untuk status loading
   const [loading, setLoading] = useState(true);
+  // State untuk pesan error
   const [error, setError] = useState(null);
-  const [titleMapping, setTitleMapping] = useState({}); // Track title variants
-  const [lastCommentFetch, setLastCommentFetch] = useState(null); // Track when comments were last fetched
-  
-  // Improved CSV parser that handles quoted values correctly
-  const parseCSVRow = (row) => {
-    const result = [];
-    let insideQuote = false;
-    let currentValue = '';
-    
-    for (let i = 0; i < row.length; i++) {
-      const char = row[i];
-      
-      if (char === '"') {
-        // Toggle inside quote flag, but only add quote to value if it's escaped
-        if (i + 1 < row.length && row[i + 1] === '"') {
-          currentValue += '"';
-          i++; // Skip next quote
-        } else {
-          insideQuote = !insideQuote;
-        }
-      } else if (char === ',' && !insideQuote) {
-        result.push(currentValue);
-        currentValue = '';
-      } else {
-        currentValue += char;
-      }
-    }
-    
-    // Add the last value
-    result.push(currentValue);
-    
-    return result;
-  };
-  
-  // Normalize title for consistent matching
+  // State untuk mengontrol tampilan formulir tambah artikel
+  const [showAddArticleForm, setShowAddArticleForm] = useState(false);
+  // State untuk data artikel baru yang akan ditambahkan
+  const [newArticle, setNewArticle] = useState({
+    title: '',
+    body: '',
+    authorName: '',
+    tags: ''
+  });
+  // State untuk mengontrol tampilan formulir tambah komentar
+  const [showAddCommentForm, setShowAddCommentForm] = useState(false);
+  // State untuk data komentar baru yang akan ditambahkan
+  const [newComment, setNewComment] = useState({
+    postId: null, // ID postingan tempat komentar akan ditambahkan
+    commenterName: '',
+    commentText: ''
+  });
+  // State untuk melacak kapan komentar terakhir diambil
+  const [lastCommentFetch, setLastCommentFetch] = useState(null);
+  // State untuk melacak status pengiriman artikel (untuk disabled button)
+  const [isSubmittingArticle, setIsSubmittingArticle] = useState(false);
+  // State untuk melacak status pengiriman komentar (untuk disabled button)
+  const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+
+
+  // Fungsi utilitas untuk menormalisasi judul (mengubah ke huruf kecil dan menghapus spasi di awal/akhir)
   const normalizeTitle = (title) => {
     return title.trim().toLowerCase();
   };
-  
-  // Function to fetch comments - made reusable and separate
-  const fetchComments = useCallback(async () => {
+
+  // Callback untuk mengambil komentar dari backend
+  // Perubahan kunci: 'posts' DIHAPUS dari dependency array useCallback
+  const fetchComments = useCallback(async (postId = null) => {
     try {
-      const commentsResponse = await axios.get(COMMENT_CSV_URL);
-      console.log('Comments data fetched:', commentsResponse.data);
-      
-      // Parse CSV data for comments
-      const commentsRows = commentsResponse.data.split('\n');
-      const commentsHeaders = parseCSVRow(commentsRows[0]);
-      
-      const commentsMap = {};
-      
-      // Start from index 1 to skip headers
-      for (let i = 1; i < commentsRows.length; i++) {
-        if (commentsRows[i].trim()) {
-          const values = parseCSVRow(commentsRows[i]);
-          
-          // Create a map for easier field access
-          const commentFieldMap = {};
-          commentsHeaders.forEach((header, index) => {
-            commentFieldMap[header.trim()] = values[index] || '';
-          });
-          
-          // Debug log
-          console.log(`Comment row ${i} field map:`, commentFieldMap);
-          
-          // Look for various possible field names
-          const articleTitle = 
-            commentFieldMap['Judul Artikel'] ||
-            commentFieldMap['Pilih Judul Artikel'] || 
-            values[commentsHeaders.findIndex(h => h.includes('Judul') || h.includes('judul'))] || 
-            '';
-            
-          const commenterName = 
-            commentFieldMap['Nama Komentator'] || 
-            commentFieldMap['Nama'] || 
-            values[commentsHeaders.findIndex(h => h.includes('Nama'))] || 
-            'Anonim';
-            
-          const commentText = 
-            commentFieldMap['Komentar'] || 
-            commentFieldMap['Isi Komentar'] || 
-            values[commentsHeaders.findIndex(h => h.includes('Komentar') || h.includes('komentar'))] || 
-            '';
-            
-          const commentTime = 
-            commentFieldMap['Timestamp'] || 
-            values[0] || // Usually timestamp is the first column
-            new Date().toISOString();
-          
-          if (articleTitle) {
-            // Use normalized title as the key for comments
-            const normalizedCommentTitle = normalizeTitle(articleTitle);
-            if (!commentsMap[normalizedCommentTitle]) {
-              commentsMap[normalizedCommentTitle] = [];
-            }
-            
-            commentsMap[normalizedCommentTitle].push({
-              id: `comment-${i}`,
-              author: {
-                name: commenterName,
-                avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(commenterName)}&background=random`
-              },
-              text: commentText,
-              createdAt: commentTime
-            });
-          }
-        }
+      let commentsData = [];
+      if (postId) {
+        // Ambil komentar untuk postingan spesifik
+        const response = await fetch(`/api/posts/${postId}/comments`);
+        commentsData = await response.json();
+      } else {
+        // Jika tidak ada postId, ambil semua postingan yang sudah ada dan kemudian semua komentarnya.
+        // Variabel 'posts' di sini akan mengambil nilai terbarunya dari lingkup komponen saat fungsi ini dipanggil.
+        const allCommentsPromises = posts.map(p => // Menggunakan 'posts' dari closure
+          fetch(`/api/posts/${p.id}/comments`).then(res => res.json().then(data => ({ postId: p.id, comments: data })))
+        );
+        const allCommentsResults = await Promise.all(allCommentsPromises);
+
+        // Gabungkan semua komentar menjadi satu array datar
+        commentsData = allCommentsResults.flatMap(item =>
+          item.comments.map(comment => ({ ...comment, postId: item.postId }))
+        );
       }
-      
-      // Sort comments by timestamp (newest first)
+
+      const commentsMap = {};
+      commentsData.forEach(comment => {
+        // Temukan postingan yang sesuai untuk mengasosiasikan komentar
+        const correspondingPost = posts.find(p => p.id === comment.post_id || p.id === comment.postId); // Menggunakan 'posts' dari closure
+        if (correspondingPost) {
+          const normalizedPostTitle = normalizeTitle(correspondingPost.title);
+          if (!commentsMap[normalizedPostTitle]) {
+            commentsMap[normalizedPostTitle] = [];
+          }
+          commentsMap[normalizedPostTitle].push({
+            id: comment.id,
+            author: {
+              name: comment.commenter_name,
+              avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.commenter_name)}&background=random`
+            },
+            text: comment.comment_text,
+            createdAt: comment.created_at
+          });
+        }
+      });
+
+      // Urutkan komentar berdasarkan tanggal (terbaru dahulu)
       Object.keys(commentsMap).forEach(title => {
         commentsMap[title].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       });
-      
-      console.log('Processed comments:', commentsMap);
+
       setComments(commentsMap);
-      setLastCommentFetch(new Date()); // Update last fetch time
-      return commentsMap; // Return for use in other functions
+      setLastCommentFetch(new Date()); // Perbarui waktu pengambilan terakhir
+      return commentsMap;
     } catch (commentsErr) {
       console.error('Error fetching comments:', commentsErr);
-      // Continue even if comments fail
       return null;
     }
-  }, []);
-  
-  // Simulate data for development if fetching fails
+  }, []); // <--- Dependency array sekarang kosong! Ini memutus loop.
+
+  // Fungsi untuk memuat data sampel jika pengambilan dari API gagal
   const loadSampleData = () => {
     const samplePosts = [
       {
         id: 1,
         title: "Pentingnya Shalat dalam Kehidupan Muslim",
         body: "Shalat merupakan tiang agama dan ibadah wajib bagi setiap muslim. Allah SWT berfirman dalam Al-Quran: \"Sesungguhnya shalat itu mencegah dari (perbuatan) keji dan mungkar.\" (QS. Al-Ankabut: 45).\n\nShalat lima waktu adalah kewajiban yang tidak boleh ditinggalkan dalam kondisi apapun selama seseorang masih sadar. Nabi Muhammad SAW pun menekankan pentingnya shalat hingga akhir hayat beliau.",
-        createdAt: "2023-11-15T07:30:00Z",
-        author: {
-          login: "Ahmad Fadli",
-          avatarUrl: "https://ui-avatars.com/api/?name=Ahmad+Fadli&background=random"
-        },
-        labels: {
-          nodes: [
-            { name: "Ibadah", color: "16a34a" },
-            { name: "Fiqh", color: "0891b2" }
-          ]
-        }
+        created_at: "2023-11-15T07:30:00Z",
+        author_name: "Ahmad Fadli",
+        tags: "Ibadah, Fiqh"
       },
       {
         id: 2,
         title: "Akhlak dalam Pandangan Islam",
         body: "Akhlak memiliki posisi sangat penting dalam Islam. Rasulullah SAW diutus untuk menyempurnakan akhlak manusia. Beliau bersabda: \"Sesungguhnya aku diutus untuk menyempurnakan akhlak yang mulia.\" (HR. Ahmad).\n\nKaum muslimin diajarkan untuk memiliki akhlak yang baik terhadap Allah SWT, sesama manusia, dan seluruh makhluk. Dengan akhlak yang baik, seorang muslim dapat mencerminkan ajaran Islam yang rahmatan lil 'alamin.",
-        createdAt: "2023-11-10T09:15:00Z",
-        author: {
-          login: "Fatimah Azzahra",
-          avatarUrl: "https://ui-avatars.com/api/?name=Fatimah+Azzahra&background=random"
-        },
-        labels: {
-          nodes: [
-            { name: "Akhlak", color: "8b5cf6" },
-            { name: "Adab", color: "ef4444" }
-          ]
-        }
+        created_at: "2023-11-10T09:15:00Z",
+        author_name: "Fatimah Azzahra",
+        tags: "Akhlak, Adab"
       }
     ];
-    
+
     const sampleComments = {
       "pentingnya shalat dalam kehidupan muslim": [
         {
-          id: "comment-1",
-          author: {
-            name: "Abdullah",
-            avatarUrl: "https://ui-avatars.com/api/?name=Abdullah&background=random"
-          },
-          text: "Jazakallah khair atas ilmunya, sangat bermanfaat",
-          createdAt: "2023-11-16T10:30:00Z"
+          id: 1,
+          post_id: 1,
+          commenter_name: "Abdullah",
+          comment_text: "Jazakallah khair atas ilmunya, sangat bermanfaat",
+          created_at: "2023-11-16T10:30:00Z"
         }
       ]
     };
-    
-    const sampleTitleMapping = {
-      "pentingnya shalat dalam kehidupan muslim": "Pentingnya Shalat dalam Kehidupan Muslim",
-      "akhlak dalam pandangan islam": "Akhlak dalam Pandangan Islam"
-    };
-    
-    setPosts(samplePosts);
+
+    setPosts(samplePosts.map(post => ({
+        ...post,
+        // Buat objek 'author' dari 'author_name'
+        author: { login: post.author_name, avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(post.author_name)}&background=random` },
+        // Pisahkan string tags menjadi array objek 'labels'
+        labels: { nodes: post.tags.split(',').map(tag => ({ name: tag.trim(), color: getRandomColor() })) }
+    })));
     setComments(sampleComments);
-    setTitleMapping(sampleTitleMapping);
     setLoading(false);
   };
 
-  // Fetch posts and comments from Google Sheets
+  // useEffect untuk mengambil data postingan dan komentar saat komponen dimuat
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        
-        // Fetch posts
-        const postsResponse = await axios.get(SHEET_CSV_URL);
-        console.log('Posts data fetched:', postsResponse.data);
-        
-        // Parse CSV data for posts
-        const postsRows = postsResponse.data.split('\n');
-        const postsHeaders = parseCSVRow(postsRows[0]);
-        
-        const processedPosts = [];
-        const titleMappingObj = {}; // Track original titles and their normalized versions
-        
-        // Start from index 1 to skip headers
-        for (let i = 1; i < postsRows.length; i++) {
-          if (postsRows[i].trim()) {
-            const values = parseCSVRow(postsRows[i]);
-            
-            // Create a map for easier field access
-            const fieldMap = {};
-            postsHeaders.forEach((header, index) => {
-              fieldMap[header.trim()] = values[index] || '';
-            });
-            
-            // Log the field map for debugging
-            console.log(`Row ${i} field map:`, fieldMap);
-            
-            // Get title and store mapping
-            const originalTitle = fieldMap['Judul Artikel'] || 'Artikel Tanpa Judul';
-            const normalizedTitle = normalizeTitle(originalTitle);
-            titleMappingObj[normalizedTitle] = originalTitle;
-            
-            // Map specific fields using direct matching
-            const post = {
-              id: i,
-              title: originalTitle,
-              body: fieldMap['Isi Artikel'] || '',
-              createdAt: fieldMap['Timestamp'] || new Date().toISOString(),
-              author: {
-                login: fieldMap['Nama Penulis'] || 'Anonim',
-                avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(fieldMap['Nama Penulis'] || 'Anonim')}&background=random`
-              },
-              labels: { 
-                nodes: [] 
-              }
-            };
-            
-            // Handle tags specifically
-            const tagsField = fieldMap['Tag'] || '';
-            if (tagsField) {
-              post.labels.nodes = tagsField.split(',').map(tag => ({
-                name: tag.trim(),
-                color: getRandomColor()
-              }));
+
+        // Ambil postingan dari backend API
+        const postsResponse = await fetch('/api/posts');
+        const postsData = await postsResponse.json();
+
+        // Proses data postingan untuk menambahkan properti 'author' dan 'labels'
+        const processedPosts = postsData.map(post => ({
+            id: post.id,
+            title: post.title,
+            body: post.body,
+            created_at: post.created_at, // Gunakan created_at dari database
+            author: {
+                login: post.author_name,
+                avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(post.author_name)}&background=random`
+            },
+            labels: {
+                nodes: post.tags ? post.tags.split(',').map(tag => ({
+                    name: tag.trim(),
+                    color: getRandomColor()
+                })) : []
             }
-            
-            processedPosts.push(post);
-          }
-        }
-        
-        // Sort by timestamp (newest first)
-        processedPosts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        console.log('Processed posts:', processedPosts);
-        
+        }));
+
+        // Urutkan postingan berdasarkan tanggal pembuatan (terbaru dahulu)
+        processedPosts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
         setPosts(processedPosts);
-        setTitleMapping(titleMappingObj);
-        
-        // Fetch comments using the separate function
-        await fetchComments();
-        
+
+        // Ambil komentar setelah postingan dimuat dan ID-nya diketahui
+        // Panggil fetchComments tanpa argumen untuk mengambil semua komentar yang sesuai
+        await fetchComments(); 
+
         setLoading(false);
       } catch (err) {
-        console.error('Error fetching posts:', err);
-        console.log('Falling back to sample data');
-        // Fall back to sample data if fetching fails
-        loadSampleData();
-        
-        setError('Gagal memuat artikel dari Google Sheets. Menampilkan data sample.');
+        console.error('Error fetching data:', err);
+        loadSampleData(); // Fallback ke data sampel jika pengambilan gagal
+        setError('Gagal memuat artikel. Menampilkan data sampel.');
         Swal.fire({
           title: 'Peringatan',
-          text: 'Gagal memuat data dari Google Sheets. Menampilkan data contoh sebagai fallback.',
+          text: 'Gagal memuat data dari server. Menampilkan data contoh sebagai fallback.',
           icon: 'warning',
           confirmButtonText: 'OK',
           confirmButtonColor: '#16a34a'
@@ -310,71 +197,104 @@ const IslamicBlog = () => {
     };
 
     fetchData();
-  }, [fetchComments]);
+  }, [fetchComments]); // 'fetchComments' adalah dependensi, tetapi sekarang identitasnya stabil karena useCallback dengan array kosong.
 
-  // Generate random color for tags
+  // Fungsi untuk menghasilkan warna acak untuk tag
   const getRandomColor = () => {
     const colors = ['16a34a', '0891b2', '8b5cf6', 'ef4444', 'f59e0b', '6366f1', 'ec4899'];
     return colors[Math.floor(Math.random() * colors.length)];
   };
 
-  // Redirect to Google Form
+  // Menangani klik tombol "Tulis Artikel" untuk menampilkan formulir
   const handleAddArticleClick = () => {
-    window.open(GOOGLE_FORM_URL, '_blank');
-    
-    Swal.fire({
-      title: 'Formulir Terbuka',
-      text: 'Formulir untuk menambahkan artikel baru telah dibuka di tab baru',
-      icon: 'success',
-      confirmButtonText: 'OK',
-      confirmButtonColor: '#16a34a'
-    });
+    setShowAddArticleForm(true);
   };
 
-  // Format date
+  // Menangani perubahan input di formulir artikel
+  const handleArticleFormChange = (e) => {
+    const { name, value } = e.target;
+    setNewArticle(prev => ({ ...prev, [name]: value }));
+  };
+
+  // Menangani pengiriman formulir artikel baru
+  const handleArticleSubmit = async (e) => {
+    e.preventDefault(); // Mencegah refresh halaman
+    setIsSubmittingArticle(true); // Mulai loading
+    try {
+      const response = await fetch('/api/posts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newArticle), // Kirim data artikel baru sebagai JSON
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const addedPost = await response.json(); // Ambil postingan yang ditambahkan dari respons
+
+      // Tambahkan postingan baru ke state lokal dan atur ulang propertinya
+      setPosts(prevPosts => [
+        {
+            ...addedPost,
+            author: { login: addedPost.author_name, avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(addedPost.author_name)}&background=random` },
+            labels: { nodes: addedPost.tags ? addedPost.tags.split(',').map(tag => ({ name: tag.trim(), color: getRandomColor() })) : [] }
+        },
+        ...prevPosts
+      ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at))); // Urutkan ulang
+
+      setNewArticle({ title: '', body: '', authorName: '', tags: '' }); // Reset formulir
+      setShowAddArticleForm(false); // Sembunyikan formulir
+      Swal.fire('Berhasil!', 'Artikel berhasil ditambahkan.', 'success');
+    } catch (err) {
+      console.error('Error submitting article:', err);
+      Swal.fire('Gagal!', 'Gagal menambahkan artikel.', 'error');
+    } finally {
+      setIsSubmittingArticle(false); // Akhiri loading, terlepas dari sukses/gagal
+    }
+  };
+
+  // Fungsi untuk memformat tanggal
   const formatDate = (dateString) => {
     if (!dateString) return '';
-    
-    // Check if dateString is already a Date object
+
+    // Jika sudah objek Date, format langsung
     if (dateString instanceof Date) {
       const options = { year: 'numeric', month: 'long', day: 'numeric' };
       return dateString.toLocaleDateString('id-ID', options);
     }
-    
-    // Check if it's a string
+
+    // Jika bukan string, coba konversi ke string
     if (typeof dateString !== 'string') {
       try {
-        // Convert to string first
         dateString = String(dateString);
       } catch (e) {
         console.error('Cannot convert to string:', dateString);
         return '';
       }
     }
-    
+
     try {
-      // Handle different possible date formats
       let date;
-      
-      // If it looks like a timestamp or ISO string
-      if (/^\d+$/.test(dateString)) {
-        date = new Date(parseInt(dateString));
-      } else if (dateString.includes('/')) {
-        // Format like 04/03/2025 12:20:49
-        const [datePart] = dateString.split(' ');
-        const [day, month, year] = datePart.split('/').map(Number);
-        date = new Date(year, month - 1, day);
+      // Tangani format timestamp atau ISO string
+      if (/^\d{10}$/.test(dateString) || /^\d{13}$/.test(dateString)) { // Unix timestamp (seconds or milliseconds)
+        date = new Date(parseInt(dateString) * (/^\d{10}$/.test(dateString) ? 1000 : 1));
+      } else if (/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/.test(dateString)) { // ISO string like 2023-11-15T07:30:00.000Z
+          date = new Date(dateString);
+      } else if (dateString.includes('GMT') || dateString.includes('UTC')) { // Common date string with timezone
+          date = new Date(dateString);
       } else {
-        // Default to standard Date parsing
+        // Coba parsing standar untuk format lain (contoh: PostgreSQL TIMESTAMPTZ)
         date = new Date(dateString);
       }
-      
-      // Validate the date
+
       if (isNaN(date.getTime())) {
         console.error('Invalid date:', dateString);
         return dateString;
       }
-      
+
       const options = { year: 'numeric', month: 'long', day: 'numeric' };
       return date.toLocaleDateString('id-ID', options);
     } catch (e) {
@@ -382,45 +302,79 @@ const IslamicBlog = () => {
       return dateString;
     }
   };
-  // Handle comment submission - ENHANCED VERSION
-  const handleAddComment = async (articleTitle) => {
-    // Menggunakan formId yang sudah benar
-    const formId = COMMENT_FORM_ID; // Menggunakan konstanta yang sudah didefinisikan
-    
-    // Pastikan judul artikel ada dan terkode dengan benar
-    const encodedTitle = encodeURIComponent(articleTitle);
-    
-    // Membangun URL Google Forms dengan format yang benar
-    // Format URL Google Forms: https://docs.google.com/forms/d/e/{formId}/viewform?entry.{entryId}={value}
-    const prefillFormUrl = `https://docs.google.com/forms/d/e/${formId}/viewform?` +
-      `entry.${ENTRY_ID_FOR_TITLE}=${encodedTitle}`;
-    
-    console.log('Opening comment form with URL:', prefillFormUrl);
-    
-    // Open form in a new tab
-    const newWindow = window.open(prefillFormUrl, '_blank');
-    
-    // Show the dialog about refreshing comments
-    Swal.fire({
-      title: 'Formulir Komentar Terbuka',
-      text: 'Formulir untuk menambahkan komentar telah dibuka di tab baru. Setelah mengirim komentar, klik "Refresh Komentar" untuk melihat komentar baru.',
-      icon: 'success',
-      showCancelButton: true,
-      confirmButtonText: 'Refresh Komentar',
-      cancelButtonText: 'Tutup',
-      confirmButtonColor: '#16a34a'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        // Refresh comments when user clicks the button
-        refreshComments(articleTitle);
-      }
-    });
+
+
+  // Menangani klik tombol "Tambah Komentar" pada modal artikel
+  const handleAddCommentClick = (postId) => {
+    setNewComment({ postId, commenterName: '', commentText: '' }); // Atur postId untuk komentar
+    setShowAddCommentForm(true); // Tampilkan formulir komentar
   };
-  
-  // Function to refresh comments
-  const refreshComments = async (currentArticleTitle = null) => {
+
+  // Menangani perubahan input di formulir komentar
+  const handleCommentFormChange = (e) => {
+    const { name, value } = e.target;
+    setNewComment(prev => ({ ...prev, [name]: value }));
+  };
+
+  // Menangani pengiriman formulir komentar baru
+  const handleCommentSubmit = async (e) => {
+    e.preventDefault();
+    if (!newComment.postId) return; // Pastikan ada postId
+    setIsSubmittingComment(true); // Mulai loading
+
     try {
-      // Show loading indicator
+      const response = await fetch(`/api/posts/${newComment.postId}/comments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          commenterName: newComment.commenterName,
+          commentText: newComment.commentText
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const addedComment = await response.json();
+
+      // Perbarui state komentar untuk postingan yang spesifik
+      const correspondingPost = posts.find(p => p.id === newComment.postId);
+      if (correspondingPost) {
+        const normalizedPostTitle = normalizeTitle(correspondingPost.title);
+        setComments(prevComments => ({
+          ...prevComments,
+          [normalizedPostTitle]: [
+            {
+              id: addedComment.id,
+              author: {
+                name: addedComment.commenter_name,
+                avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(addedComment.commenter_name)}&background=random`
+              },
+              text: addedComment.comment_text,
+              createdAt: addedComment.created_at
+            },
+            ...(prevComments[normalizedPostTitle] || []) // Tambahkan komentar lama
+          ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) // Urutkan
+        }));
+      }
+
+      setNewComment({ postId: null, commenterName: '', commentText: '' }); // Reset formulir
+      setShowAddCommentForm(false); // Sembunyikan formulir
+      Swal.fire('Berhasil!', 'Komentar berhasil ditambahkan.', 'success');
+    } catch (err) {
+      console.error('Error submitting comment:', err);
+      Swal.fire('Gagal!', 'Gagal menambahkan komentar.', 'error');
+    } finally {
+      setIsSubmittingComment(false); // Akhiri loading, terlepas dari sukses/gagal
+    }
+  };
+
+  // Fungsi untuk me-refresh komentar
+  const refreshComments = async (currentArticlePost = null) => {
+    try {
       Swal.fire({
         title: 'Memuat Komentar',
         text: 'Sedang memperbarui data komentar...',
@@ -429,13 +383,12 @@ const IslamicBlog = () => {
           Swal.showLoading();
         }
       });
-      
-      // Fetch comments
-      const updatedComments = await fetchComments();
-      
+
+      // Ambil komentar, jika ada postingan yang sedang dibuka, ambil komentarnya saja
+      await fetchComments(currentArticlePost ? currentArticlePost.id : null);
+
       Swal.close();
-      
-      // Show success message
+
       Swal.fire({
         title: 'Komentar Diperbarui',
         text: 'Data komentar telah berhasil diperbarui',
@@ -443,12 +396,9 @@ const IslamicBlog = () => {
         confirmButtonText: 'OK',
         confirmButtonColor: '#16a34a'
       }).then(() => {
-        // If we have a current article open, reopen it with updated comments
-        if (currentArticleTitle) {
-          const matchingPost = posts.find(post => post.title === currentArticleTitle);
-          if (matchingPost) {
-            handleReadMore(matchingPost);
-          }
+        // Jika ada artikel yang sedang dibuka, tampilkan lagi dengan komentar terbaru
+        if (currentArticlePost) {
+          handleReadMore(currentArticlePost);
         }
       });
     } catch (error) {
@@ -462,27 +412,26 @@ const IslamicBlog = () => {
       });
     }
   };
-  
-  // Get comments for a post, handling case insensitivity
+
+  // Mengambil komentar untuk postingan tertentu (berdasarkan judul yang dinormalisasi)
   const getCommentsForPost = (post) => {
     const normalizedTitle = normalizeTitle(post.title);
     return comments[normalizedTitle] || [];
   };
 
-  // Handle "Baca Selengkapnya" button click - IMPROVED VERSION
+  // Menangani klik tombol "Baca Selengkapnya" (menampilkan modal artikel)
   const handleReadMore = (post) => {
     try {
       const title = post.title || 'Artikel';
       const bodyContent = post.body || '';
-      const postComments = getCommentsForPost(post);
-      
-      // Create comments HTML
+      const postComments = getCommentsForPost(post); // Ambil komentar untuk postingan ini
+
       let commentsHTML = '';
-      
+
       if (postComments.length > 0) {
         commentsHTML += '<div class="mt-6 pt-6 border-t border-gray-200">';
         commentsHTML += '<h3 class="text-lg font-bold mb-4">Komentar</h3>';
-        
+
         postComments.forEach(comment => {
           commentsHTML += `
             <div class="mb-4 pb-4 border-b border-gray-100">
@@ -495,10 +444,10 @@ const IslamicBlog = () => {
             </div>
           `;
         });
-        
+
         commentsHTML += '</div>';
       } else {
-        // Show message when no comments exist
+        // Pesan jika belum ada komentar
         commentsHTML += `
           <div class="mt-6 pt-6 border-t border-gray-200">
             <h3 class="text-lg font-bold mb-4">Komentar</h3>
@@ -506,17 +455,17 @@ const IslamicBlog = () => {
           </div>
         `;
       }
-      
-      // Add buttons: Add Comment and Refresh Comments
+
+      // Tombol aksi di dalam modal
       const actionButtons = `
         <div class="mt-4 text-center flex justify-center space-x-4">
-          <button 
+          <button
             id="addCommentBtn"
             class="py-2 px-4 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors"
           >
             Tambah Komentar
           </button>
-          <button 
+          <button
             id="refreshCommentsBtn"
             class="py-2 px-4 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
           >
@@ -524,13 +473,14 @@ const IslamicBlog = () => {
           </button>
         </div>
       `;
-      
-      // Show when comments were last fetched
-      const lastUpdateInfo = lastCommentFetch ? 
+
+      // Info terakhir diperbarui
+      const lastUpdateInfo = lastCommentFetch ?
         `<div class="text-center text-xs text-gray-500 mt-2">
           Komentar terakhir diperbarui: ${formatDate(lastCommentFetch)} ${new Date(lastCommentFetch).toLocaleTimeString('id-ID')}
         </div>` : '';
-      
+
+      // Menampilkan modal SweetAlert2
       Swal.fire({
         title: title,
         html: `
@@ -546,15 +496,15 @@ const IslamicBlog = () => {
         confirmButtonText: 'Tutup',
         confirmButtonColor: '#16a34a',
         didOpen: () => {
-          // Add event listener to the buttons
+          // Tambahkan event listener ke tombol-tombol di dalam modal
           document.getElementById('addCommentBtn').addEventListener('click', () => {
-            Swal.close();
-            handleAddComment(title);
+            Swal.close(); // Tutup modal saat tombol diklik
+            handleAddCommentClick(post.id); // Panggil fungsi tambah komentar dengan ID postingan
           });
-          
+
           document.getElementById('refreshCommentsBtn').addEventListener('click', () => {
-            Swal.close();
-            refreshComments(title);
+            Swal.close(); // Tutup modal saat tombol diklik
+            refreshComments(post); // Refresh komentar untuk postingan ini
           });
         }
       });
@@ -564,6 +514,7 @@ const IslamicBlog = () => {
     }
   };
 
+  // Tampilan loading
   if (loading) {
     return (
       <div className="container-custom flex justify-center items-center min-h-[60vh]">
@@ -575,14 +526,15 @@ const IslamicBlog = () => {
     );
   }
 
+  // Tampilan error jika tidak ada postingan yang dimuat
   if (error && posts.length === 0) {
     return (
       <div className="container-custom flex justify-center items-center min-h-[60vh]">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-red-500 mb-2">Error</h2>
           <p>{error}</p>
-          <button 
-            onClick={() => window.location.reload()} 
+          <button
+            onClick={() => window.location.reload()}
             className="btn-primary mt-4"
           >
             Coba Lagi
@@ -592,6 +544,7 @@ const IslamicBlog = () => {
     );
   }
 
+  // Render utama komponen blog
   return (
     <div className="container-custom py-8">
       {error && (
@@ -599,7 +552,7 @@ const IslamicBlog = () => {
           <div className="flex">
             <div className="flex-shrink-0">
               <svg className="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2-2v-992zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
               </svg>
             </div>
             <div className="ml-3">
@@ -617,42 +570,193 @@ const IslamicBlog = () => {
       >
         <h1 className="text-3xl md:text-4xl font-bold mb-2">Artikel Islami</h1>
         <p className="text-gray-600 max-w-2xl mx-auto">
-          Berbagi pemikiran, ilmu, dan pengalaman seputar Islam. Bergabunglah dalam artikel islami dan berkontribusi untuk saling menginspirasi.
+          Berbagi pemikiran, ilmu, dan pengalaman seputar Islam. Bergabunglah dalam artikel Islami dan berkontribusi untuk saling menginspirasi.
         </p>
       </motion.div>
 
+      {/* Tombol Refresh Komentar dan Tulis Artikel */}
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-8 w-full">
-      <button
-        onClick={() => refreshComments()}
-        className="btn-secondary flex items-center justify-center w-full sm:w-auto px-4 py-2 rounded"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-        </svg>
-        Refresh Komentar
-      </button>
-      
-      <button
-        onClick={handleAddArticleClick}
-        className="btn-primary flex items-center justify-center w-full sm:w-auto px-4 py-2 rounded"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-        </svg>
-        Tulis Artikel
-      </button>
-    </div>
-      {/* Last update indicator */}
+        <button
+          onClick={() => refreshComments()}
+          className="btn-secondary flex items-center justify-center w-full sm:w-auto px-4 py-2 rounded"
+        >
+          <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          Refresh Komentar
+        </button>
+
+        <button
+          onClick={handleAddArticleClick}
+          className="btn-primary flex items-center justify-center w-full sm:w-auto px-4 py-2 rounded"
+        >
+          <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          Tulis Artikel
+        </button>
+      </div>
+
+      {/* Indikator Terakhir Diperbarui */}
       {lastCommentFetch && (
         <div className="text-center text-sm text-gray-500 mb-6">
           Komentar terakhir diperbarui: {formatDate(lastCommentFetch)} {new Date(lastCommentFetch).toLocaleTimeString('id-ID')}
         </div>
       )}
 
-      {/* No results message when no posts */}
+      {/* Formulir Tambah Artikel */}
+      {showAddArticleForm && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-lg shadow-md p-6 mb-8"
+        >
+          <h2 className="text-2xl font-bold mb-4">Tambah Artikel Baru</h2>
+          <form onSubmit={handleArticleSubmit}>
+            <div className="mb-4">
+              <label htmlFor="title" className="block text-gray-700 text-sm font-bold mb-2">Judul Artikel:</label>
+              <input
+                type="text"
+                id="title"
+                name="title"
+                value={newArticle.title}
+                onChange={handleArticleFormChange}
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-white" // Tambah bg-white
+                required
+              />
+            </div>
+            <div className="mb-4">
+              <label htmlFor="body" className="block text-gray-700 text-sm font-bold mb-2">Isi Artikel:</label>
+              <textarea
+                id="body"
+                name="body"
+                value={newArticle.body}
+                onChange={handleArticleFormChange}
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-32 bg-white" // Tambah bg-white
+                required
+              ></textarea>
+            </div>
+            <div className="mb-4">
+              <label htmlFor="authorName" className="block text-gray-700 text-sm font-bold mb-2">Nama Penulis:</label>
+              <input
+                type="text"
+                id="authorName"
+                name="authorName"
+                value={newArticle.authorName}
+                onChange={handleArticleFormChange}
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-white" // Tambah bg-white
+                required
+              />
+            </div>
+            <div className="mb-6">
+              <label htmlFor="tags" className="block text-gray-700 text-sm font-bold mb-2">Tag (pisahkan dengan koma):</label>
+              <input
+                type="text"
+                id="tags"
+                name="tags"
+                value={newArticle.tags}
+                onChange={handleArticleFormChange}
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-white" // Tambah bg-white
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <button
+                type="submit"
+                className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50 disabled:cursor-not-allowed" // Tambah disabled styling
+                disabled={isSubmittingArticle} // Tambah properti disabled
+              >
+                {isSubmittingArticle ? (
+                  <span className="flex items-center">
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Mengirim...
+                  </span>
+                ) : (
+                  'Kirim Artikel'
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowAddArticleForm(false)}
+                className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isSubmittingArticle} // Juga disable saat mengirim
+              >
+                Batal
+              </button>
+            </div>
+          </form>
+        </motion.div>
+      )}
+
+      {/* Formulir Tambah Komentar */}
+      {showAddCommentForm && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-lg shadow-md p-6 mb-8"
+        >
+          <h2 className="text-2xl font-bold mb-4">Tambah Komentar</h2>
+          <form onSubmit={handleCommentSubmit}>
+            <div className="mb-4">
+              <label htmlFor="commenterName" className="block text-gray-700 text-sm font-bold mb-2">Nama Anda:</label>
+              <input
+                type="text"
+                id="commenterName"
+                name="commenterName"
+                value={newComment.commenterName}
+                onChange={handleCommentFormChange}
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-white" // Tambah bg-white
+                required
+              />
+            </div>
+            <div className="mb-4">
+              <label htmlFor="commentText" className="block text-gray-700 text-sm font-bold mb-2">Komentar:</label>
+              <textarea
+                id="commentText"
+                name="commentText"
+                value={newComment.commentText}
+                onChange={handleCommentFormChange}
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-24 bg-white" // Tambah bg-white
+                required
+              ></textarea>
+            </div>
+            <div className="flex items-center justify-between">
+              <button
+                type="submit"
+                className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50 disabled:cursor-not-allowed" // Tambah disabled styling
+                disabled={isSubmittingComment} // Tambah properti disabled
+              >
+                {isSubmittingComment ? (
+                  <span className="flex items-center">
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Mengirim...
+                  </span>
+                ) : (
+                  'Kirim Komentar'
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowAddCommentForm(false)}
+                className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isSubmittingComment} // Juga disable saat mengirim
+              >
+                Batal
+              </button>
+            </div>
+          </form>
+        </motion.div>
+      )}
+
+      {/* Pesan jika tidak ada artikel ditemukan */}
       {posts.length === 0 && (
         <div className="text-center py-12 bg-white rounded-lg shadow-md">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="h-16 w-16 mx-auto text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
           <h3 className="text-xl font-medium mb-2">Belum ada artikel yang ditemukan</h3>
@@ -662,13 +766,12 @@ const IslamicBlog = () => {
         </div>
       )}
 
-      {/* Posts Grid */}
+      {/* Grid Postingan Blog */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {posts.map((post) => {
-          // Get comment count for this post using the normalized title
           const postComments = getCommentsForPost(post);
           const commentCount = postComments.length;
-          
+
           return (
             <motion.div
               key={post.id}
@@ -686,19 +789,20 @@ const IslamicBlog = () => {
                   />
                   <div>
                     <div className="font-medium text-gray-800">{post.author.login}</div>
-                    <div className="text-gray-500 text-sm">{formatDate(post.createdAt)}</div>
+                    <div className="text-gray-500 text-sm">{formatDate(post.created_at)}</div>
                   </div>
                 </div>
-                
+
                 <h2 className="text-xl font-bold mb-3 text-gray-800 hover:text-green-600">
                   {post.title}
                 </h2>
-                
+
                 <p className="text-gray-600 mb-4 line-clamp-3">
                   {post.body}
                 </p>
-                
+
                 <div className="flex flex-wrap gap-2 mb-4">
+                 {/* Render tag */}
                  {post.labels.nodes.map((label, index) => (
                   <span
                     key={index}
@@ -709,15 +813,15 @@ const IslamicBlog = () => {
                   </span>
                 ))}
                 </div>
-                
+
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-500 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
                     </svg>
                     {commentCount} Komentar
                   </span>
-                  
+
                   <button
                     onClick={() => handleReadMore(post)}
                     className="btn-sm-primary"

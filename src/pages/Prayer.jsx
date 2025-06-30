@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
 import Swal from 'sweetalert2'
 import { motion } from 'framer-motion'
 
@@ -21,6 +20,7 @@ const Prayer = () => {
   const [notificationsEnabled, setNotificationsEnabled] = useState(false)
   const [notificationTimers, setNotificationTimers] = useState([])
   const [audioEnabled, setAudioEnabled] = useState(true)
+  const [hijriDate, setHijriDate] = useState(null); // New state for Hijri date
   
   // Create audio elements
   const [audioElements, setAudioElements] = useState(null)
@@ -294,13 +294,13 @@ const Prayer = () => {
         
         // Set timeout for the notification
         const timerId = setTimeout(() => {
-          sendNotification(prayer.name)
+          sendNotification(prayer.name) // 5-minute reminder
         }, timeUntilNotification)
         
         // Also set a timer for the exact prayer time
         const timeUntilPrayer = prayerDate - now
         const exactTimerId = setTimeout(() => {
-          sendNotification(prayer.name, true)
+          sendNotification(prayer.name, true) // Exact prayer time
         }, timeUntilPrayer)
         
         newTimers.push(timerId, exactTimerId)
@@ -456,30 +456,28 @@ const Prayer = () => {
     }
   }
 
-  // Fetch city information based on coordinates
+  // Fetch city information based on coordinates using OpenCage API
   const fetchLocationInfo = async (latitude, longitude) => {
     try {
       const formattedLatitude = parseFloat(latitude).toFixed(8)
       const formattedLongitude = parseFloat(longitude).toFixed(8)
       
-      const locationApiUrl = `https://waktu-sholat.vercel.app/location?latitude=${formattedLatitude}&longitude=${formattedLongitude}`
+      const locationApiUrl = `/api/opencage?lat=${formattedLatitude}&lon=${formattedLongitude}`
       
-      const response = await axios.get(locationApiUrl)
-      console.log('Location API response:', response.data)
+      const response = await fetch(locationApiUrl);
+      const data = await response.json();
+      console.log('OpenCage API response:', data);
       
-      if (response.data) {
-        // Updated to match the specific response format
+      if (data.city && data.country) {
         setCityInfo({
-          city: response.data.city?.name || 'Unknown',
-          province: response.data.province?.name || '',
-          coordinate: response.data.coordinate
+          city: data.city,
+          province: data.country // Using country as province for simplicity based on your example
         })
       } else {
-        console.log('Location data format not recognized:', response.data)
+        console.log('Location data format not recognized from OpenCage:', data)
       }
     } catch (err) {
-      console.warn('Error fetching location info:', err)
-      // No need to show error to user, this is just supplementary information
+      console.warn('Error fetching location info from OpenCage:', err)
     }
   }
 
@@ -487,49 +485,36 @@ const Prayer = () => {
     try {
       setLoading(true)
       
-      // Ensure the parameters are properly formatted
       const formattedLatitude = parseFloat(latitude).toFixed(8)
       const formattedLongitude = parseFloat(longitude).toFixed(8)
       
-      const apiUrl = `https://waktu-sholat.vercel.app/prayer?latitude=${formattedLatitude}&longitude=${formattedLongitude}`
+      const apiUrl = `https://api.aladhan.com/v1/timings?latitude=${formattedLatitude}&longitude=${formattedLongitude}&method=2&school=1&language=id`
       
-      const response = await axios.get(apiUrl)
-      console.log('Prayer API response:', response.data)
+      const response = await fetch(apiUrl);
+      const data = await response.json();
+      console.log('Aladhan API response:', data);
       
-      // Updated to match the expected response format from your example
-      if (response.data && response.data.prayers && response.data.prayers.length > 0) {
-        const todayPrayers = response.data.prayers[0];
-        if (todayPrayers && todayPrayers.time) {
-          // Map the response to match our expected format
-          const prayerData = {
-            date: todayPrayers.date,
-            imsak: todayPrayers.time.imsak,
-            subuh: todayPrayers.time.subuh,
-            terbit: todayPrayers.time.terbit,
-            dzuhur: todayPrayers.time.dzuhur || todayPrayers.time.dhuha, // Handle both variants
-            ashar: todayPrayers.time.ashar,
-            maghrib: todayPrayers.time.maghrib,
-            isya: todayPrayers.time.isya
-          };
-          
-          setPrayerTimes(prayerData);
-          setLoading(false);
-          setError(null); // Clear any previous errors
-        } else {
-          throw new Error('Format waktu sholat tidak valid');
-        }
-      } else if (response.data && response.data.data) {
-        // Handle alternative response format
-        setPrayerTimes(response.data.data)
-        setLoading(false)
-        setError(null)
-      } else if (response.data && response.data.status === 'success' && response.data.results) {
-        // Another alternative API response structure
-        setPrayerTimes(response.data.results)
-        setLoading(false)
-        setError(null)
+      if (data.data && data.data.timings) {
+        const timings = data.data.timings;
+        const hijri = data.data.date.hijri;
+
+        const prayerData = {
+          date: data.data.date.readable,
+          imsak: timings.Imsak,
+          subuh: timings.Fajr,
+          terbit: timings.Sunrise,
+          dzuhur: timings.Dhuhr,
+          ashar: timings.Asr,
+          maghrib: timings.Maghrib,
+          isya: timings.Isha
+        };
+        
+        setPrayerTimes(prayerData);
+        setHijriDate(`${hijri.day} ${hijri.month.en} ${hijri.year} H`);
+        setLoading(false);
+        setError(null);
       } else {
-        throw new Error('Format data dari API tidak valid')
+        throw new Error('Format data dari API Aladhan tidak valid');
       }
     } catch (err) {
       console.warn('API Warning:', err)
@@ -606,7 +591,6 @@ const Prayer = () => {
       }
     } catch (err) {
       console.warn('Calculating next prayer warning:', err)
-      // Don't show error to user, just log it
     }
   }
 
@@ -721,6 +705,11 @@ const Prayer = () => {
         ) : (
           <p className="text-gray-600">
             Jadwal sholat untuk lokasi Anda hari ini
+          </p>
+        )}
+        {hijriDate && (
+          <p className="text-gray-600 text-sm mt-1">
+            Tanggal Hijriah: {hijriDate}
           </p>
         )}
         {error && (
