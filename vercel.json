@@ -1,29 +1,32 @@
 {
-  "outputDirectory": "dist", 
+  
   "functions": {
     "backend/server.js": {
       "runtime": "@vercel/node"
     }
   },
-  "rewrites": [
+  "routes": [
     {
-      "source": "/api/(.*)",
-      "destination": "/backend"
+      "src": "/api/(.*)", 
+      "dest": "/backend"
     },
     {
-      "source": "/(.*\\..*)",
-      "destination": "/dist/$1"
+      "src": "/(.*\\..*)", 
+      "dest": "/dist/$1" 
     },
     {
-      "source": "/(.*)",
-      "destination": "/dist/index.html"
+      "src": "/(.*)",
+      "dest": "/dist/index.html"
     }
   ],
+  
   "builds": [
     {
+
       "src": "package.json",
       "use": "@vercel/static-build",
       "config": { "outputDirectory": "dist" }
     }
+    
   ]
 }
