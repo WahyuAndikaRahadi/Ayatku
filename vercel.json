@@ -3,6 +3,10 @@
     {
       "source": "/api/:path*",
       "destination": "/backend/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/dist/index.html"
     }
   ],
   "builds": [
