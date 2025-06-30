@@ -15,15 +15,5 @@
       "use": "@vercel/static-build",
       "config": { "outputDirectory": "dist" }
     }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/backend/server.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/dist/$1"
-    }
   ]
 }
