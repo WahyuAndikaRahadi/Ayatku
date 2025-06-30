@@ -8,30 +8,32 @@ const app = express();
 // Mengatur port server, menggunakan variabel lingkungan PORT jika tersedia, jika tidak, gunakan 5000
 const port = process.env.PORT || 5000;
 
+// Log saat serverless function dimulai
+console.log('Serverless function backend/server.js starting...');
+console.log('DATABASE_URL is set:', !!process.env.DATABASE_URL); // Cek apakah env var terbaca
+
 // Konfigurasi koneksi database untuk Neon Postgres
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL, // Mengambil connection string dari .env
     ssl: {
-        // 'rejectUnauthorized: false' diperlukan untuk koneksi ke Neon (untuk sertifikat SSL)
         rejectUnauthorized: false
     }
 });
 
 // Middleware
-// Mengaktifkan CORS untuk mengizinkan permintaan dari domain frontend Anda
 app.use(cors());
-// Mengaktifkan parsing JSON untuk body permintaan HTTP
 app.use(express.json());
 
-// --- Rute API untuk Blog Posts (DIUPDATE TANPA PREFIKS /api/) ---
+// Log setiap permintaan yang masuk
+app.use((req, res, next) => {
+    console.log(`Incoming request: ${req.method} ${req.url}`);
+    next();
+});
 
-/**
- * @route GET /posts
- * @description Mengambil semua postingan blog dari database, diurutkan berdasarkan tanggal dibuat terbaru.
- * (Rute disesuaikan untuk TIDAK menyertakan '/api/')
- * @access Public
- */
-app.get('/posts', async (req, res) => { // DIUBAH DARI /api/posts
+// --- Rute API untuk Blog Posts (TANPA PREFIKS /api/) ---
+
+app.get('/posts', async (req, res) => {
+    console.log('GET /posts hit!');
     try {
         const result = await pool.query('SELECT * FROM blog_posts ORDER BY created_at DESC');
         res.json(result.rows);
@@ -41,17 +43,8 @@ app.get('/posts', async (req, res) => { // DIUBAH DARI /api/posts
     }
 });
 
-/**
- * @route POST /posts
- * @description Menambahkan postingan blog baru ke database.
- * (Rute disesuaikan untuk TIDAK menyertakan '/api/')
- * @access Public
- * @body {string} title - Judul postingan blog.
- * @body {string} body - Isi postingan blog.
- * @body {string} authorName - Nama penulis postingan.
- * @body {string} [tags] - Tag postingan, dipisahkan koma (opsional).
- */
-app.post('/posts', async (req, res) => { // DIUBAH DARI /api/posts
+app.post('/posts', async (req, res) => {
+    console.log('POST /posts hit!');
     const { title, body, authorName, tags } = req.body;
     if (!title || !body || !authorName) {
         return res.status(400).json({ error: 'Title, body, and author name are required' });
@@ -68,16 +61,10 @@ app.post('/posts', async (req, res) => { // DIUBAH DARI /api/posts
     }
 });
 
-// --- Rute API untuk Komentar Blog (DIUPDATE TANPA PREFIKS /api/) ---
+// --- Rute API untuk Komentar Blog (TANPA PREFIKS /api/) ---
 
-/**
- * @route GET /posts/:postId/comments
- * @description Mengambil semua komentar untuk postingan blog tertentu.
- * (Rute disesuaikan untuk TIDAK menyertakan '/api/')
- * @access Public
- * @param {number} postId - ID dari postingan blog.
- */
-app.get('/posts/:postId/comments', async (req, res) => { // DIUBAH DARI /api/posts/:postId/comments
+app.get('/posts/:postId/comments', async (req, res) => {
+    console.log(`GET /posts/${req.params.postId}/comments hit!`);
     const { postId } = req.params;
     try {
         const result = await pool.query(
@@ -91,16 +78,8 @@ app.get('/posts/:postId/comments', async (req, res) => { // DIUBAH DARI /api/pos
     }
 });
 
-/**
- * @route POST /posts/:postId/comments
- * @description Menambahkan komentar baru ke postingan blog tertentu.
- * (Rute disesuaikan untuk TIDAK menyertakan '/api/')
- * @access Public
- * @param {number} postId - ID dari postingan blog.
- * @body {string} commenterName - Nama komentator.
- * @body {string} commentText - Isi komentar.
- */
-app.post('/posts/:postId/comments', async (req, res) => { // DIUBAH DARI /api/posts/:postId/comments
+app.post('/posts/:postId/comments', async (req, res) => {
+    console.log(`POST /posts/${req.params.postId}/comments hit!`);
     const { postId } = req.params;
     const { commenterName, commentText } = req.body;
     if (!commenterName || !commentText) {
@@ -116,6 +95,18 @@ app.post('/posts/:postId/comments', async (req, res) => { // DIUBAH DARI /api/po
         console.error('Error adding comment:', err);
         res.status(500).json({ error: 'Internal server error' });
     }
+});
+
+// Middleware penanganan 404 (jika tidak ada rute yang cocok)
+app.use((req, res, next) => {
+    console.warn(`404 Not Found: ${req.method} ${req.url}`);
+    res.status(404).send('404: Not Found (from backend)');
+});
+
+// Middleware penanganan error umum
+app.use((err, req, res, next) => {
+    console.error('Unhandled backend error:', err);
+    res.status(500).send('500: Internal Server Error (from backend)');
 });
 
 // Memulai server untuk mendengarkan permintaan pada port yang ditentukan
