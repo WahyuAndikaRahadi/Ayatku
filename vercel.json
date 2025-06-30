@@ -1,8 +1,17 @@
 {
+  "functions": {
+    "backend/server.js": {
+      "runtime": "@vercel/node"
+    }
+  },
   "rewrites": [
     {
-      "source": "/api/:path*",
-      "destination": "/backend/:path*"
+      "source": "/api/(.*)",
+      "destination": "/backend"
+    },
+    {
+      "source": "/(.*\\..*)",
+      "destination": "/dist/$1"
     },
     {
       "source": "/(.*)",
@@ -10,10 +19,6 @@
     }
   ],
   "builds": [
-    {
-      "src": "backend/server.js",
-      "use": "@vercel/node"
-    },
     {
       "src": "package.json",
       "use": "@vercel/static-build",
