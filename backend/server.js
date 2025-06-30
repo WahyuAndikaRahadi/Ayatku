@@ -23,15 +23,15 @@ app.use(cors());
 // Mengaktifkan parsing JSON untuk body permintaan HTTP
 app.use(express.json());
 
-// --- Rute API untuk Blog Posts (DIUPDATE DENGAN PREFIKS /api/) ---
+// --- Rute API untuk Blog Posts (DIUPDATE TANPA PREFIKS /api/) ---
 
 /**
- * @route GET /api/posts
+ * @route GET /posts
  * @description Mengambil semua postingan blog dari database, diurutkan berdasarkan tanggal dibuat terbaru.
- * (Rute disesuaikan untuk menyertakan '/api/')
+ * (Rute disesuaikan untuk TIDAK menyertakan '/api/')
  * @access Public
  */
-app.get('/api/posts', async (req, res) => { // DIUBAH KEMBALI KE /api/posts
+app.get('/posts', async (req, res) => { // DIUBAH DARI /api/posts
     try {
         const result = await pool.query('SELECT * FROM blog_posts ORDER BY created_at DESC');
         res.json(result.rows);
@@ -42,16 +42,16 @@ app.get('/api/posts', async (req, res) => { // DIUBAH KEMBALI KE /api/posts
 });
 
 /**
- * @route POST /api/posts
+ * @route POST /posts
  * @description Menambahkan postingan blog baru ke database.
- * (Rute disesuaikan untuk menyertakan '/api/')
+ * (Rute disesuaikan untuk TIDAK menyertakan '/api/')
  * @access Public
  * @body {string} title - Judul postingan blog.
  * @body {string} body - Isi postingan blog.
  * @body {string} authorName - Nama penulis postingan.
  * @body {string} [tags] - Tag postingan, dipisahkan koma (opsional).
  */
-app.post('/api/posts', async (req, res) => { // DIUBAH KEMBALI KE /api/posts
+app.post('/posts', async (req, res) => { // DIUBAH DARI /api/posts
     const { title, body, authorName, tags } = req.body;
     if (!title || !body || !authorName) {
         return res.status(400).json({ error: 'Title, body, and author name are required' });
@@ -68,16 +68,16 @@ app.post('/api/posts', async (req, res) => { // DIUBAH KEMBALI KE /api/posts
     }
 });
 
-// --- Rute API untuk Komentar Blog (DIUPDATE DENGAN PREFIKS /api/) ---
+// --- Rute API untuk Komentar Blog (DIUPDATE TANPA PREFIKS /api/) ---
 
 /**
- * @route GET /api/posts/:postId/comments
+ * @route GET /posts/:postId/comments
  * @description Mengambil semua komentar untuk postingan blog tertentu.
- * (Rute disesuaikan untuk menyertakan '/api/')
+ * (Rute disesuaikan untuk TIDAK menyertakan '/api/')
  * @access Public
  * @param {number} postId - ID dari postingan blog.
  */
-app.get('/api/posts/:postId/comments', async (req, res) => { // DIUBAH KEMBALI KE /api/posts/:postId/comments
+app.get('/posts/:postId/comments', async (req, res) => { // DIUBAH DARI /api/posts/:postId/comments
     const { postId } = req.params;
     try {
         const result = await pool.query(
@@ -92,15 +92,15 @@ app.get('/api/posts/:postId/comments', async (req, res) => { // DIUBAH KEMBALI K
 });
 
 /**
- * @route POST /api/posts/:postId/comments
+ * @route POST /posts/:postId/comments
  * @description Menambahkan komentar baru ke postingan blog tertentu.
- * (Rute disesuaikan untuk menyertakan '/api/')
+ * (Rute disesuaikan untuk TIDAK menyertakan '/api/')
  * @access Public
  * @param {number} postId - ID dari postingan blog.
  * @body {string} commenterName - Nama komentator.
  * @body {string} commentText - Isi komentar.
  */
-app.post('/api/posts/:postId/comments', async (req, res) => { // DIUBAH KEMBALI KE /api/posts/:postId/comments
+app.post('/posts/:postId/comments', async (req, res) => { // DIUBAH DARI /api/posts/:postId/comments
     const { postId } = req.params;
     const { commenterName, commentText } = req.body;
     if (!commenterName || !commentText) {
