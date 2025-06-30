@@ -1,4 +1,5 @@
 {
+  "outputDirectory": "dist", 
   "functions": {
     "backend/server.js": {
       "runtime": "@vercel/node"
