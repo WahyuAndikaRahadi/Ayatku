@@ -49,13 +49,13 @@ const IslamicBlog = () => {
       let commentsData = [];
       if (postId) {
         // Ambil komentar untuk postingan spesifik
-        const response = await fetch(`/backend/posts/${postId}/comments`);
+        const response = await fetch(`/api/posts/${postId}/comments`);
         commentsData = await response.json();
       } else {
         // Jika tidak ada postId, ambil semua postingan yang sudah ada dan kemudian semua komentarnya.
         // Variabel 'posts' di sini akan mengambil nilai terbarunya dari lingkup komponen saat fungsi ini dipanggil.
         const allCommentsPromises = posts.map(p => // Menggunakan 'posts' dari closure
-          fetch(`/backend/posts/${p.id}/comments`).then(res => res.json().then(data => ({ postId: p.id, comments: data })))
+          fetch(`/api/posts/${p.id}/comments`).then(res => res.json().then(data => ({ postId: p.id, comments: data })))
         );
         const allCommentsResults = await Promise.all(allCommentsPromises);
 
@@ -78,7 +78,7 @@ const IslamicBlog = () => {
             id: comment.id,
             author: {
               name: comment.commenter_name,
-              avatarUrl: `https://ui-avatars.com/backend/?name=${encodeURIComponent(comment.commenter_name)}&background=random`
+              avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.commenter_name)}&background=random`
             },
             text: comment.comment_text,
             createdAt: comment.created_at
@@ -100,7 +100,7 @@ const IslamicBlog = () => {
     }
   }, []); // <--- Dependency array sekarang kosong! Ini memutus loop.
 
-  // Fungsi untuk memuat data sampel jika pengambilan dari backend gagal
+  // Fungsi untuk memuat data sampel jika pengambilan dari API gagal
   const loadSampleData = () => {
     const samplePosts = [
       {
@@ -136,7 +136,7 @@ const IslamicBlog = () => {
     setPosts(samplePosts.map(post => ({
         ...post,
         // Buat objek 'author' dari 'author_name'
-        author: { login: post.author_name, avatarUrl: `https://ui-avatars.com/backend/?name=${encodeURIComponent(post.author_name)}&background=random` },
+        author: { login: post.author_name, avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(post.author_name)}&background=random` },
         // Pisahkan string tags menjadi array objek 'labels'
         labels: { nodes: post.tags.split(',').map(tag => ({ name: tag.trim(), color: getRandomColor() })) }
     })));
@@ -150,8 +150,8 @@ const IslamicBlog = () => {
       try {
         setLoading(true);
 
-        // Ambil postingan dari backend backend
-        const postsResponse = await fetch('/backend/posts');
+        // Ambil postingan dari backend API
+        const postsResponse = await fetch('/api/posts');
         const postsData = await postsResponse.json();
 
         // Proses data postingan untuk menambahkan properti 'author' dan 'labels'
@@ -162,7 +162,7 @@ const IslamicBlog = () => {
             created_at: post.created_at, // Gunakan created_at dari database
             author: {
                 login: post.author_name,
-                avatarUrl: `https://ui-avatars.com/backend/?name=${encodeURIComponent(post.author_name)}&background=random`
+                avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(post.author_name)}&background=random`
             },
             labels: {
                 nodes: post.tags ? post.tags.split(',').map(tag => ({
@@ -197,7 +197,7 @@ const IslamicBlog = () => {
     };
 
     fetchData();
-  }, [fetchComments]); // 'fetchComments' adalah dependensi, tetbackend sekarang identitasnya stabil karena useCallback dengan array kosong.
+  }, [fetchComments]); // 'fetchComments' adalah dependensi, tetapi sekarang identitasnya stabil karena useCallback dengan array kosong.
 
   // Fungsi untuk menghasilkan warna acak untuk tag
   const getRandomColor = () => {
@@ -221,7 +221,7 @@ const IslamicBlog = () => {
     e.preventDefault(); // Mencegah refresh halaman
     setIsSubmittingArticle(true); // Mulai loading
     try {
-      const response = await fetch('/backend/posts', {
+      const response = await fetch('/api/posts', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -239,7 +239,7 @@ const IslamicBlog = () => {
       setPosts(prevPosts => [
         {
             ...addedPost,
-            author: { login: addedPost.author_name, avatarUrl: `https://ui-avatars.com/backend/?name=${encodeURIComponent(addedPost.author_name)}&background=random` },
+            author: { login: addedPost.author_name, avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(addedPost.author_name)}&background=random` },
             labels: { nodes: addedPost.tags ? addedPost.tags.split(',').map(tag => ({ name: tag.trim(), color: getRandomColor() })) : [] }
         },
         ...prevPosts
@@ -323,7 +323,7 @@ const IslamicBlog = () => {
     setIsSubmittingComment(true); // Mulai loading
 
     try {
-      const response = await fetch(`/backend/posts/${newComment.postId}/comments`, {
+      const response = await fetch(`/api/posts/${newComment.postId}/comments`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -351,7 +351,7 @@ const IslamicBlog = () => {
               id: addedComment.id,
               author: {
                 name: addedComment.commenter_name,
-                avatarUrl: `https://ui-avatars.com/backend/?name=${encodeURIComponent(addedComment.commenter_name)}&background=random`
+                avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(addedComment.commenter_name)}&background=random`
               },
               text: addedComment.comment_text,
               createdAt: addedComment.created_at
