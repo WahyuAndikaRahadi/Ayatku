@@ -1,29 +1,16 @@
-// Memuat variabel lingkungan dari file .env (hanya untuk lokal)
-// Note: dotenv tidak support ESM langsung untuk `.config()` di root,
-// jadi kita akan gunakan cara impor dinamis atau pastikan package.json TIDAK ADA "type": "module"
-// atau gunakan dotenv-cli (node -r dotenv/config your-script.js)
-// Untuk kesederhanaan, jika Anda memiliki "type": "module", variabel lingkungan Vercel akan bekerja
-// dan untuk lokal Anda bisa menjalankan `node -r dotenv/config api/index.js`
-
 import express from 'express';
-import pg from 'pg'; // import Pool from 'pg';
+import pg from 'pg';
 import cors from 'cors';
-import dotenv from 'dotenv'; // Import dotenv untuk penggunaan lokal
+import dotenv from 'dotenv';
 
-// Jika tidak ada "type": "module" di package.json, gunakan dotenv secara langsung.
-// Jika ada "type": "module", maka pastikan variabel env diatur di Vercel atau
-// untuk lokal jalankan dengan `node -r dotenv/config api/index.js`
 if (process.env.NODE_ENV !== 'production') {
-  dotenv.config(); // Hanya jalankan dotenv.config() jika bukan di produksi
+  dotenv.config();
 }
 
-
-const { Pool } = pg; // Destructure Pool dari pg
-
+const { Pool } = pg;
 
 const app = express();
 
-// Konfigurasi koneksi database untuk Neon Postgres
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: {
@@ -35,9 +22,31 @@ const pool = new Pool({
 app.use(cors());
 app.use(express.json());
 
-// Log setiap permintaan yang masuk
+// ********** TAMBAHKAN MIDDLEWARE INI **********
 app.use((req, res, next) => {
-    console.log(`Incoming request: ${req.method} ${req.url}`);
+    console.log(`Original Incoming request: ${req.method} ${req.url}`);
+
+    // Hapus prefiks /api/ jika ada
+    if (req.url.startsWith('/api/')) {
+        req.url = req.url.substring(4); // Menghapus '/api'
+    }
+
+    // Hapus parameter query '?path=' jika ada, yang tampaknya ditambahkan oleh Vercel
+    const queryParamIndex = req.url.indexOf('?path=');
+    if (queryParamIndex !== -1) {
+        req.url = req.url.substring(0, queryParamIndex);
+    }
+
+    console.log(`Cleaned Request URL for Express: ${req.method} ${req.url}`);
+    next();
+});
+// ********** AKHIR MIDDLEWARE TAMBAHAN **********
+
+
+// Log setiap permintaan yang masuk (ini akan menggunakan URL yang sudah dibersihkan)
+app.use((req, res, next) => {
+    // Log ini akan mencatat URL setelah dibersihkan oleh middleware di atas
+    console.log(`Incoming request (after cleanup): ${req.method} ${req.url}`);
     next();
 });
 
@@ -118,11 +127,8 @@ app.use((err, req, res, next) => {
     res.status(500).send('500: Internal Server Error (from backend)');
 });
 
-// Ekspor aplikasi Express untuk Vercel
 export default app;
 
-// Jalankan server HANYA jika file ini dieksekusi langsung secara lokal
-// (bukan saat diimpor oleh Vercel atau sebagai modul lain)
 if (import.meta.url === (await import('url')).pathToFileURL(process.argv[1]).href) {
     const port = process.env.PORT || 5000;
     app.listen(port, () => {
