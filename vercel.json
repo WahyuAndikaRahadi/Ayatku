@@ -6,7 +6,7 @@
     },
     {
       "source": "/(.*)",
-      "destination": "/dist/index.html"
+      "destination": "/"
     }
   ],
   "builds": [
