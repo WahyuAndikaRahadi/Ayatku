@@ -1,8 +1,25 @@
 // Memuat variabel lingkungan dari file .env (hanya untuk lokal)
-require('dotenv').config();
-const express = require('express');
-const { Pool } = require('pg');
-const cors = require('cors');
+// Note: dotenv tidak support ESM langsung untuk `.config()` di root,
+// jadi kita akan gunakan cara impor dinamis atau pastikan package.json TIDAK ADA "type": "module"
+// atau gunakan dotenv-cli (node -r dotenv/config your-script.js)
+// Untuk kesederhanaan, jika Anda memiliki "type": "module", variabel lingkungan Vercel akan bekerja
+// dan untuk lokal Anda bisa menjalankan `node -r dotenv/config api/index.js`
+
+import express from 'express';
+import pg from 'pg'; // import Pool from 'pg';
+import cors from 'cors';
+import dotenv from 'dotenv'; // Import dotenv untuk penggunaan lokal
+
+// Jika tidak ada "type": "module" di package.json, gunakan dotenv secara langsung.
+// Jika ada "type": "module", maka pastikan variabel env diatur di Vercel atau
+// untuk lokal jalankan dengan `node -r dotenv/config api/index.js`
+if (process.env.NODE_ENV !== 'production') {
+  dotenv.config(); // Hanya jalankan dotenv.config() jika bukan di produksi
+}
+
+
+const { Pool } = pg; // Destructure Pool dari pg
+
 
 const app = express();
 
@@ -32,7 +49,7 @@ app.get('/posts', async (req, res) => {
         res.json(result.rows);
     } catch (err) {
         console.error('Error fetching posts:', err);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({ error: 'Internal server error', details: err.message });
     }
 });
 
@@ -50,7 +67,7 @@ app.post('/posts', async (req, res) => {
         res.status(201).json(result.rows[0]);
     } catch (err) {
         console.error('Error adding post:', err);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({ error: 'Internal server error', details: err.message });
     }
 });
 
@@ -66,7 +83,7 @@ app.get('/posts/:postId/comments', async (req, res) => {
         res.json(result.rows);
     } catch (err) {
         console.error('Error fetching comments:', err);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({ error: 'Internal server error', details: err.message });
     }
 });
 
@@ -85,7 +102,7 @@ app.post('/posts/:postId/comments', async (req, res) => {
         res.status(201).json(result.rows[0]);
     } catch (err) {
         console.error('Error adding comment:', err);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({ error: 'Internal server error', details: err.message });
     }
 });
 
@@ -101,12 +118,12 @@ app.use((err, req, res, next) => {
     res.status(500).send('500: Internal Server Error (from backend)');
 });
 
-// ********** PERUBAHAN PENTING DI SINI **********
-// Ekspor aplikasi Express untuk Vercel (saat diimpor)
-module.exports = app;
+// Ekspor aplikasi Express untuk Vercel
+export default app;
 
-// Jalankan server HANYA jika file ini dieksekusi langsung (bukan saat diimpor oleh Vercel)
-if (require.main === module) {
+// Jalankan server HANYA jika file ini dieksekusi langsung secara lokal
+// (bukan saat diimpor oleh Vercel atau sebagai modul lain)
+if (import.meta.url === (await import('url')).pathToFileURL(process.argv[1]).href) {
     const port = process.env.PORT || 5000;
     app.listen(port, () => {
         console.log(`Server Express berjalan di http://localhost:${port}`);
