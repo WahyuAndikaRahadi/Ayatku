@@ -1,12 +1,16 @@
 {
-  "rewrites": [
+  "cleanUrls": true,
+  "redirects": [
     {
       "source": "/api/:path*",
-      "destination": "/backend/:path*"
-    },
+      "destination": "/backend/:path*",
+      "statusCode": 200
+    }
+  ],
+  "routes": [
     {
-      "source": "/(.*)",
-      "destination": "/"
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ],
   "builds": [
@@ -17,7 +21,9 @@
     {
       "src": "package.json",
       "use": "@vercel/static-build",
-      "config": { "outputDirectory": "dist" }
+      "config": {
+        "outputDirectory": "dist"
+      }
     }
   ]
 }
