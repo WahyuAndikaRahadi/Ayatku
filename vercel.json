@@ -1,8 +1,8 @@
 {
   "rewrites": [
     {
-      "source": "/api/posts/:postId/comments",
-      "destination": "/api/comments?postId=:postId"
+      "source": "/api/:path*",
+      "destination": "/api/index.js" 
     },
     {
       "source": "/(.*)",
@@ -11,7 +11,7 @@
   ],
   "builds": [
     {
-      "src": "api/**/*.js",
+      "src": "api/index.js",
       "use": "@vercel/node"
     },
     {

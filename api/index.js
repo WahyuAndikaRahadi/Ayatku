@@ -1,20 +1,14 @@
-// Memuat variabel lingkungan dari file .env
+// Memuat variabel lingkungan dari file .env (hanya untuk lokal)
 require('dotenv').config();
-const express = require('express'); // Framework web untuk Node.js
-const { Pool } = require('pg');     // Klien PostgreSQL untuk Node.js
-const cors = require('cors');       // Middleware untuk mengizinkan permintaan lintas asal
+const express = require('express');
+const { Pool } = require('pg');
+const cors = require('cors');
 
 const app = express();
-// Mengatur port server, menggunakan variabel lingkungan PORT jika tersedia, jika tidak, gunakan 5000
-const port = process.env.PORT || 5000;
-
-// Log saat serverless function dimulai
-console.log('Serverless function backend/server.js starting...');
-console.log('DATABASE_URL is set:', !!process.env.DATABASE_URL); // Cek apakah env var terbaca
 
 // Konfigurasi koneksi database untuk Neon Postgres
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL, // Mengambil connection string dari .env
+    connectionString: process.env.DATABASE_URL,
     ssl: {
         rejectUnauthorized: false
     }
@@ -30,8 +24,7 @@ app.use((req, res, next) => {
     next();
 });
 
-// --- Rute API untuk Blog Posts (TANPA PREFIKS /api/) ---
-
+// --- Rute API untuk Blog Posts ---
 app.get('/posts', async (req, res) => {
     console.log('GET /posts hit!');
     try {
@@ -61,8 +54,7 @@ app.post('/posts', async (req, res) => {
     }
 });
 
-// --- Rute API untuk Komentar Blog (TANPA PREFIKS /api/) ---
-
+// --- Rute API untuk Komentar Blog ---
 app.get('/posts/:postId/comments', async (req, res) => {
     console.log(`GET /posts/${req.params.postId}/comments hit!`);
     const { postId } = req.params;
@@ -109,7 +101,14 @@ app.use((err, req, res, next) => {
     res.status(500).send('500: Internal Server Error (from backend)');
 });
 
-// Memulai server untuk mendengarkan permintaan pada port yang ditentukan
-app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-});
+// ********** PERUBAHAN PENTING DI SINI **********
+// Ekspor aplikasi Express untuk Vercel (saat diimpor)
+module.exports = app;
+
+// Jalankan server HANYA jika file ini dieksekusi langsung (bukan saat diimpor oleh Vercel)
+if (require.main === module) {
+    const port = process.env.PORT || 5000;
+    app.listen(port, () => {
+        console.log(`Server Express berjalan di http://localhost:${port}`);
+    });
+}
