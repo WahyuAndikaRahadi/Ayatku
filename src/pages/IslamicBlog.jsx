@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react'; // Import useRef
 import { motion } from 'framer-motion';
 import Swal from 'sweetalert2';
 
@@ -36,11 +36,14 @@ const IslamicBlog = () => {
   // State untuk melacak status pengiriman komentar (untuk menonaktifkan tombol)
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
 
+  // Ref untuk memastikan useEffect hanya berjalan sekali pada mount awal
+  const isMounted = useRef(false);
+
 
   // Fungsi utilitas untuk menormalisasi judul (mengubah ke huruf kecil dan menghapus spasi di awal/akhir)
-  const normalizeTitle = (title) => {
+  const normalizeTitle = useCallback((title) => {
     return title.trim().toLowerCase();
-  };
+  }, []);
 
   // Fungsi untuk menghasilkan warna acak untuk tag
   const getRandomColor = useCallback(() => {
@@ -347,8 +350,13 @@ const IslamicBlog = () => {
 
   // useEffect utama untuk memanggil fetchData saat komponen dimuat
   useEffect(() => {
-    console.log('useEffect (initial data fetch) triggered'); // Log added
-    fetchData();
+    if (!isMounted.current) {
+      isMounted.current = true;
+      console.log('useEffect (initial data fetch) triggered for the first time'); // Modified log
+      fetchData();
+    } else {
+      console.log('useEffect triggered again, but skipping fetchData after initial mount.'); // Added log
+    }
   }, [fetchData]);
 
 
@@ -516,6 +524,9 @@ const IslamicBlog = () => {
   }, [fetchData, handleReadMore]);
 
 
+  // Efek ini sepertinya tidak melakukan apa-apa dan bisa dihapus jika tidak ada logika tambahan yang direncanakan.
+  // Jika Anda ingin mengamati perubahan handleReadMore, handleAddCommentClick, atau refreshComments,
+  // logika untuk efek ini perlu ditambahkan di sini.
   useEffect(() => {
   }, [handleReadMore, handleAddCommentClick, refreshComments]);
 
