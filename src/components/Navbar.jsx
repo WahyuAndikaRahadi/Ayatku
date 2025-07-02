@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { FaQuran, FaBars, FaTimes } from 'react-icons/fa'
+import { FaBars, FaTimes } from 'react-icons/fa' // FaQuran dihapus
 import { motion } from 'framer-motion'
+
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false)
@@ -37,7 +38,8 @@ const Navbar = () => {
                 handleNavigation('/');
               }}
             >
-              <FaQuran className="h-6 w-6 mr-2 text-emerald-600" />
+              {/* Menggunakan tag img untuk logo dari public/icons/ayatku.png */}
+              <img src="/icons/ayatku.png" alt="Ayatku Logo" className="h-8 w-8 mr-2" />
               <span className="text-xl font-bold text-emerald-600">Ayatku</span>
             </a>
           </div>
@@ -168,7 +170,7 @@ const Navbar = () => {
                 handleNavigation('/blog');
               }}
             >
-               Artikel Islami
+              Artikel Islami
             </a>
             <a
               href="/prayer"
