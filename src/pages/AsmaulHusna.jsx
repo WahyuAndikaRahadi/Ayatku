@@ -152,7 +152,7 @@ const AsmaulHusna = () => {
   )
 
   return (
-    <div className="container-custom bg-gray-50  py-8">
+    <div className="container-custom bg-gray-50  py-5 mt-5">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
