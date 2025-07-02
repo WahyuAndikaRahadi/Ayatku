@@ -8,9 +8,9 @@ const IslamicBlog = () => {
   const [posts, setPosts] = useState([]);
   // State untuk menyimpan komentar, diorganisir berdasarkan judul postingan yang dinormalisasi
   const [comments, setComments] = useState({});
-  // State untuk status loading
+  // State untuk status loading saat mengambil data
   const [loading, setLoading] = useState(true);
-  // State untuk pesan error
+  // State untuk pesan error jika terjadi masalah pengambilan data
   const [error, setError] = useState(null);
   // State untuk mengontrol tampilan formulir tambah artikel
   const [showAddArticleForm, setShowAddArticleForm] = useState(false);
@@ -31,9 +31,9 @@ const IslamicBlog = () => {
   });
   // State untuk melacak kapan komentar terakhir diambil
   const [lastCommentFetch, setLastCommentFetch] = useState(null);
-  // State untuk melacak status pengiriman artikel (untuk disabled button)
+  // State untuk melacak status pengiriman artikel (untuk menonaktifkan tombol)
   const [isSubmittingArticle, setIsSubmittingArticle] = useState(false);
-  // State untuk melacak status pengiriman komentar (untuk disabled button)
+  // State untuk melacak status pengiriman komentar (untuk menonaktifkan tombol)
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
 
 
@@ -43,19 +43,28 @@ const IslamicBlog = () => {
   };
 
   // Callback untuk mengambil komentar dari backend
-  // Perubahan kunci: 'posts' DIHAPUS dari dependency array useCallback
+  // Penting: 'posts' sekarang ada di dependency array agar fungsi ini selalu memiliki akses ke daftar posts terbaru
   const fetchComments = useCallback(async (postId = null) => {
     try {
       let commentsData = [];
       if (postId) {
-        // Ambil komentar untuk postingan spesifik
+        // Ambil komentar untuk postingan spesifik jika postId diberikan
         const response = await fetch(`/api/posts/${postId}/comments`);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         commentsData = await response.json();
       } else {
-        // Jika tidak ada postId, ambil semua postingan yang sudah ada dan kemudian semua komentarnya.
-        // Variabel 'posts' di sini akan mengambil nilai terbarunya dari lingkup komponen saat fungsi ini dipanggil.
-        const allCommentsPromises = posts.map(p => // Menggunakan 'posts' dari closure
-          fetch(`/api/posts/${p.id}/comments`).then(res => res.json().then(data => ({ postId: p.id, comments: data })))
+        // Jika tidak ada postId, ambil komentar untuk semua postingan yang sudah ada
+        const allCommentsPromises = posts.map(p => // Menggunakan nilai 'posts' terbaru dari closure useCallback
+          fetch(`/api/posts/${p.id}/comments`)
+            .then(res => {
+              if (!res.ok) throw new Error(`HTTP error! status: ${res.status} for post ${p.id}`);
+              return res.json();
+            })
+            .then(data => ({ postId: p.id, comments: data }))
+            .catch(err => {
+              console.error(`Error fetching comments for post ${p.id}:`, err);
+              return { postId: p.id, comments: [] }; // Kembalikan array kosong jika ada error
+            })
         );
         const allCommentsResults = await Promise.all(allCommentsPromises);
 
@@ -68,7 +77,7 @@ const IslamicBlog = () => {
       const commentsMap = {};
       commentsData.forEach(comment => {
         // Temukan postingan yang sesuai untuk mengasosiasikan komentar
-        const correspondingPost = posts.find(p => p.id === comment.post_id || p.id === comment.postId); // Menggunakan 'posts' dari closure
+        const correspondingPost = posts.find(p => p.id === comment.post_id || p.id === comment.postId); // Menggunakan nilai 'posts' terbaru
         if (correspondingPost) {
           const normalizedPostTitle = normalizeTitle(correspondingPost.title);
           if (!commentsMap[normalizedPostTitle]) {
@@ -96,9 +105,10 @@ const IslamicBlog = () => {
       return commentsMap;
     } catch (commentsErr) {
       console.error('Error fetching comments:', commentsErr);
+      // Jangan setError di sini agar tidak menimpa error utama, cukup log
       return null;
     }
-  }, []); // <--- Dependency array sekarang kosong! Ini memutus loop.
+  }, [posts]); // <--- Dependency array sekarang berisi 'posts' agar 'fetchComments' diperbarui saat 'posts' berubah
 
   // Fungsi untuk memuat data sampel jika pengambilan dari API gagal
   const loadSampleData = () => {
@@ -121,6 +131,7 @@ const IslamicBlog = () => {
       }
     ];
 
+    // Data komentar sampel perlu disesuaikan dengan struktur normalizedTitle
     const sampleComments = {
       "pentingnya shalat dalam kehidupan muslim": [
         {
@@ -140,7 +151,7 @@ const IslamicBlog = () => {
         // Pisahkan string tags menjadi array objek 'labels'
         labels: { nodes: post.tags.split(',').map(tag => ({ name: tag.trim(), color: getRandomColor() })) }
     })));
-    setComments(sampleComments);
+    setComments(sampleComments); // Set komentar sampel
     setLoading(false);
   };
 
@@ -149,9 +160,13 @@ const IslamicBlog = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
+        setError(null); // Reset error setiap kali fetch dimulai
 
         // Ambil postingan dari backend API
         const postsResponse = await fetch('/api/posts');
+        if (!postsResponse.ok) {
+          throw new Error(`HTTP error! status: ${postsResponse.status}`);
+        }
         const postsData = await postsResponse.json();
 
         // Proses data postingan untuk menambahkan properti 'author' dan 'labels'
@@ -177,15 +192,15 @@ const IslamicBlog = () => {
 
         setPosts(processedPosts);
 
-        // Ambil komentar setelah postingan dimuat dan ID-nya diketahui
-        // Panggil fetchComments tanpa argumen untuk mengambil semua komentar yang sesuai
-        await fetchComments(); 
+        // Panggil fetchComments setelah postingan diatur,
+        // karena fetchComments bergantung pada nilai 'posts' yang terbaru.
+        await fetchComments();
 
         setLoading(false);
       } catch (err) {
         console.error('Error fetching data:', err);
         loadSampleData(); // Fallback ke data sampel jika pengambilan gagal
-        setError('Gagal memuat artikel. Menampilkan data sampel.');
+        setError('Gagal memuat artikel dari server. Menampilkan data sampel.');
         Swal.fire({
           title: 'Peringatan',
           text: 'Gagal memuat data dari server. Menampilkan data contoh sebagai fallback.',
@@ -197,7 +212,7 @@ const IslamicBlog = () => {
     };
 
     fetchData();
-  }, [fetchComments]); // 'fetchComments' adalah dependensi, tetapi sekarang identitasnya stabil karena useCallback dengan array kosong.
+  }, [fetchComments]); // 'fetchComments' adalah dependensi, ini akan memicu useEffect jika fetchComments berubah (yaitu, jika 'posts' berubah)
 
   // Fungsi untuk menghasilkan warna acak untuk tag
   const getRandomColor = () => {
@@ -230,27 +245,33 @@ const IslamicBlog = () => {
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorData = await response.json();
+        throw new Error(`HTTP error! status: ${response.status}, details: ${errorData.error || 'Unknown error'}`);
       }
 
       const addedPost = await response.json(); // Ambil postingan yang ditambahkan dari respons
 
       // Tambahkan postingan baru ke state lokal dan atur ulang propertinya
-      setPosts(prevPosts => [
-        {
-            ...addedPost,
-            author: { login: addedPost.author_name, avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(addedPost.author_name)}&background=random` },
-            labels: { nodes: addedPost.tags ? addedPost.tags.split(',').map(tag => ({ name: tag.trim(), color: getRandomColor() })) : [] }
-        },
-        ...prevPosts
-      ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at))); // Urutkan ulang
+      setPosts(prevPosts => {
+        const updatedPosts = [
+            {
+                ...addedPost,
+                author: { login: addedPost.author_name, avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(addedPost.author_name)}&background=random` },
+                labels: { nodes: addedPost.tags ? addedPost.tags.split(',').map(tag => ({ name: tag.trim(), color: getRandomColor() })) : [] }
+            },
+            ...prevPosts
+        ];
+        return updatedPosts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)); // Urutkan ulang
+      });
 
       setNewArticle({ title: '', body: '', authorName: '', tags: '' }); // Reset formulir
       setShowAddArticleForm(false); // Sembunyikan formulir
+      // Setelah menambahkan artikel, refresh komentar untuk memastikan semua data konsisten
+      await fetchComments();
       Swal.fire('Berhasil!', 'Artikel berhasil ditambahkan.', 'success');
     } catch (err) {
       console.error('Error submitting article:', err);
-      Swal.fire('Gagal!', 'Gagal menambahkan artikel.', 'error');
+      Swal.fire('Gagal!', `Gagal menambahkan artikel: ${err.message}`, 'error');
     } finally {
       setIsSubmittingArticle(false); // Akhiri loading, terlepas dari sukses/gagal
     }
@@ -281,9 +302,7 @@ const IslamicBlog = () => {
       // Tangani format timestamp atau ISO string
       if (/^\d{10}$/.test(dateString) || /^\d{13}$/.test(dateString)) { // Unix timestamp (seconds or milliseconds)
         date = new Date(parseInt(dateString) * (/^\d{10}$/.test(dateString) ? 1000 : 1));
-      } else if (/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/.test(dateString)) { // ISO string like 2023-11-15T07:30:00.000Z
-          date = new Date(dateString);
-      } else if (dateString.includes('GMT') || dateString.includes('UTC')) { // Common date string with timezone
+      } else if (/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z?/.test(dateString) || dateString.includes('GMT') || dateString.includes('UTC')) { // ISO string like 2023-11-15T07:30:00.000Z or with timezone
           date = new Date(dateString);
       } else {
         // Coba parsing standar untuk format lain (contoh: PostgreSQL TIMESTAMPTZ)
@@ -335,7 +354,8 @@ const IslamicBlog = () => {
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorData = await response.json();
+        throw new Error(`HTTP error! status: ${response.status}, details: ${errorData.error || 'Unknown error'}`);
       }
 
       const addedComment = await response.json();
@@ -366,7 +386,7 @@ const IslamicBlog = () => {
       Swal.fire('Berhasil!', 'Komentar berhasil ditambahkan.', 'success');
     } catch (err) {
       console.error('Error submitting comment:', err);
-      Swal.fire('Gagal!', 'Gagal menambahkan komentar.', 'error');
+      Swal.fire('Gagal!', `Gagal menambahkan komentar: ${err.message}`, 'error');
     } finally {
       setIsSubmittingComment(false); // Akhiri loading, terlepas dari sukses/gagal
     }
@@ -510,11 +530,11 @@ const IslamicBlog = () => {
       });
     } catch (error) {
       console.error('Error showing article:', error);
-      alert('Tidak dapat menampilkan artikel. Silakan coba lagi nanti.');
+      Swal.fire('Error', 'Tidak dapat menampilkan artikel. Silakan coba lagi nanti.', 'error');
     }
   };
 
-  // Tampilan loading
+  // Tampilan loading saat data sedang diambil
   if (loading) {
     return (
       <div className="container-custom flex justify-center items-center min-h-[60vh]">
@@ -526,7 +546,7 @@ const IslamicBlog = () => {
     );
   }
 
-  // Tampilan error jika tidak ada postingan yang dimuat
+  // Tampilan error jika tidak ada postingan yang dimuat dan terjadi error
   if (error && posts.length === 0) {
     return (
       <div className="container-custom flex justify-center items-center min-h-[60vh]">
@@ -547,6 +567,7 @@ const IslamicBlog = () => {
   // Render utama komponen blog
   return (
     <div className="container-custom py-8">
+      {/* Pesan error jika ada (misalnya, data sampel dimuat karena gagal fetch) */}
       {error && (
         <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
           <div className="flex">
@@ -562,6 +583,7 @@ const IslamicBlog = () => {
         </div>
       )}
 
+      {/* Bagian judul dan deskripsi blog */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -621,7 +643,7 @@ const IslamicBlog = () => {
                 name="title"
                 value={newArticle.title}
                 onChange={handleArticleFormChange}
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-white" // Tambah bg-white
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-white"
                 required
               />
             </div>
@@ -632,7 +654,7 @@ const IslamicBlog = () => {
                 name="body"
                 value={newArticle.body}
                 onChange={handleArticleFormChange}
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-32 bg-white" // Tambah bg-white
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-32 bg-white"
                 required
               ></textarea>
             </div>
@@ -644,7 +666,7 @@ const IslamicBlog = () => {
                 name="authorName"
                 value={newArticle.authorName}
                 onChange={handleArticleFormChange}
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-white" // Tambah bg-white
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-white"
                 required
               />
             </div>
@@ -656,14 +678,14 @@ const IslamicBlog = () => {
                 name="tags"
                 value={newArticle.tags}
                 onChange={handleArticleFormChange}
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-white" // Tambah bg-white
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-white"
               />
             </div>
             <div className="flex items-center justify-between">
               <button
                 type="submit"
-                className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50 disabled:cursor-not-allowed" // Tambah disabled styling
-                disabled={isSubmittingArticle} // Tambah properti disabled
+                className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isSubmittingArticle}
               >
                 {isSubmittingArticle ? (
                   <span className="flex items-center">
@@ -681,7 +703,7 @@ const IslamicBlog = () => {
                 type="button"
                 onClick={() => setShowAddArticleForm(false)}
                 className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={isSubmittingArticle} // Juga disable saat mengirim
+                disabled={isSubmittingArticle}
               >
                 Batal
               </button>
@@ -707,7 +729,7 @@ const IslamicBlog = () => {
                 name="commenterName"
                 value={newComment.commenterName}
                 onChange={handleCommentFormChange}
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-white" // Tambah bg-white
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-white"
                 required
               />
             </div>
@@ -718,15 +740,15 @@ const IslamicBlog = () => {
                 name="commentText"
                 value={newComment.commentText}
                 onChange={handleCommentFormChange}
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-24 bg-white" // Tambah bg-white
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-24 bg-white"
                 required
               ></textarea>
             </div>
             <div className="flex items-center justify-between">
               <button
                 type="submit"
-                className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50 disabled:cursor-not-allowed" // Tambah disabled styling
-                disabled={isSubmittingComment} // Tambah properti disabled
+                className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isSubmittingComment}
               >
                 {isSubmittingComment ? (
                   <span className="flex items-center">
@@ -744,7 +766,7 @@ const IslamicBlog = () => {
                 type="button"
                 onClick={() => setShowAddCommentForm(false)}
                 className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={isSubmittingComment} // Juga disable saat mengirim
+                disabled={isSubmittingComment}
               >
                 Batal
               </button>
