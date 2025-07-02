@@ -43,8 +43,8 @@ const IslamicBlog = () => {
   };
 
   // Callback untuk mengambil komentar dari backend
-  // Penting: 'posts' sekarang ada di dependency array agar fungsi ini selalu memiliki akses ke daftar posts terbaru
-  const fetchComments = useCallback(async (postId = null) => {
+  // PERHATIAN: Sekarang menerima 'currentPosts' sebagai argumen
+  const fetchComments = useCallback(async (currentPosts, postId = null) => { // MENAMBAHKAN currentPosts sebagai parameter
     try {
       let commentsData = [];
       if (postId) {
@@ -54,7 +54,8 @@ const IslamicBlog = () => {
         commentsData = await response.json();
       } else {
         // Jika tidak ada postId, ambil komentar untuk semua postingan yang sudah ada
-        const allCommentsPromises = posts.map(p => // Menggunakan nilai 'posts' terbaru dari closure useCallback
+        // Menggunakan currentPosts yang DILEWATKAN sebagai argumen, bukan dari closure state
+        const allCommentsPromises = currentPosts.map(p =>
           fetch(`/api/posts/${p.id}/comments`)
             .then(res => {
               if (!res.ok) throw new Error(`HTTP error! status: ${res.status} for post ${p.id}`);
@@ -77,7 +78,7 @@ const IslamicBlog = () => {
       const commentsMap = {};
       commentsData.forEach(comment => {
         // Temukan postingan yang sesuai untuk mengasosiasikan komentar
-        const correspondingPost = posts.find(p => p.id === comment.post_id || p.id === comment.postId); // Menggunakan nilai 'posts' terbaru
+        const correspondingPost = currentPosts.find(p => p.id === comment.post_id || p.id === comment.postId); // Menggunakan currentPosts dari argumen
         if (correspondingPost) {
           const normalizedPostTitle = normalizeTitle(correspondingPost.title);
           if (!commentsMap[normalizedPostTitle]) {
@@ -105,13 +106,18 @@ const IslamicBlog = () => {
       return commentsMap;
     } catch (commentsErr) {
       console.error('Error fetching comments:', commentsErr);
-      // Jangan setError di sini agar tidak menimpa error utama, cukup log
       return null;
     }
-  }, [posts]); // <--- Dependency array sekarang berisi 'posts' agar 'fetchComments' diperbarui saat 'posts' berubah
+  }, []); // <--- Dependency array sekarang KOSONG karena 'posts' dilewatkan sebagai argumen
+
+  // Fungsi untuk menghasilkan warna acak untuk tag
+  const getRandomColor = useCallback(() => { // Tambahkan useCallback jika ini dependency
+    const colors = ['16a34a', '0891b2', '8b5cf6', 'ef4444', 'f59e0b', '6366f1', 'ec4899'];
+    return colors[Math.floor(Math.random() * colors.length)];
+  }, []); // Dependensi kosong karena tidak ada yang berubah
 
   // Fungsi untuk memuat data sampel jika pengambilan dari API gagal
-  const loadSampleData = () => {
+  const loadSampleData = useCallback(() => { // Tambahkan useCallback untuk stabilitas
     const samplePosts = [
       {
         id: 1,
@@ -131,7 +137,6 @@ const IslamicBlog = () => {
       }
     ];
 
-    // Data komentar sampel perlu disesuaikan dengan struktur normalizedTitle
     const sampleComments = {
       "pentingnya shalat dalam kehidupan muslim": [
         {
@@ -146,148 +151,22 @@ const IslamicBlog = () => {
 
     setPosts(samplePosts.map(post => ({
         ...post,
-        // Buat objek 'author' dari 'author_name'
         author: { login: post.author_name, avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(post.author_name)}&background=random` },
-        // Pisahkan string tags menjadi array objek 'labels'
         labels: { nodes: post.tags.split(',').map(tag => ({ name: tag.trim(), color: getRandomColor() })) }
     })));
-    setComments(sampleComments); // Set komentar sampel
+    setComments(sampleComments);
     setLoading(false);
-  };
-
-  // useEffect untuk mengambil data postingan dan komentar saat komponen dimuat
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        setError(null); // Reset error setiap kali fetch dimulai
-
-        // Ambil postingan dari backend API
-        const postsResponse = await fetch('/api/posts');
-        if (!postsResponse.ok) {
-          throw new Error(`HTTP error! status: ${postsResponse.status}`);
-        }
-        const postsData = await postsResponse.json();
-
-        // Proses data postingan untuk menambahkan properti 'author' dan 'labels'
-        const processedPosts = postsData.map(post => ({
-            id: post.id,
-            title: post.title,
-            body: post.body,
-            created_at: post.created_at, // Gunakan created_at dari database
-            author: {
-                login: post.author_name,
-                avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(post.author_name)}&background=random`
-            },
-            labels: {
-                nodes: post.tags ? post.tags.split(',').map(tag => ({
-                    name: tag.trim(),
-                    color: getRandomColor()
-                })) : []
-            }
-        }));
-
-        // Urutkan postingan berdasarkan tanggal pembuatan (terbaru dahulu)
-        processedPosts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-
-        setPosts(processedPosts);
-
-        // Panggil fetchComments setelah postingan diatur,
-        // karena fetchComments bergantung pada nilai 'posts' yang terbaru.
-        await fetchComments();
-
-        setLoading(false);
-      } catch (err) {
-        console.error('Error fetching data:', err);
-        loadSampleData(); // Fallback ke data sampel jika pengambilan gagal
-        setError('Gagal memuat artikel dari server. Menampilkan data sampel.');
-        Swal.fire({
-          title: 'Peringatan',
-          text: 'Gagal memuat data dari server. Menampilkan data contoh sebagai fallback.',
-          icon: 'warning',
-          confirmButtonText: 'OK',
-          confirmButtonColor: '#16a34a'
-        });
-      }
-    };
-
-    fetchData();
-  }, [fetchComments]); // 'fetchComments' adalah dependensi, ini akan memicu useEffect jika fetchComments berubah (yaitu, jika 'posts' berubah)
-
-  // Fungsi untuk menghasilkan warna acak untuk tag
-  const getRandomColor = () => {
-    const colors = ['16a34a', '0891b2', '8b5cf6', 'ef4444', 'f59e0b', '6366f1', 'ec4899'];
-    return colors[Math.floor(Math.random() * colors.length)];
-  };
-
-  // Menangani klik tombol "Tulis Artikel" untuk menampilkan formulir
-  const handleAddArticleClick = () => {
-    setShowAddArticleForm(true);
-  };
-
-  // Menangani perubahan input di formulir artikel
-  const handleArticleFormChange = (e) => {
-    const { name, value } = e.target;
-    setNewArticle(prev => ({ ...prev, [name]: value }));
-  };
-
-  // Menangani pengiriman formulir artikel baru
-  const handleArticleSubmit = async (e) => {
-    e.preventDefault(); // Mencegah refresh halaman
-    setIsSubmittingArticle(true); // Mulai loading
-    try {
-      const response = await fetch('/api/posts', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newArticle), // Kirim data artikel baru sebagai JSON
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(`HTTP error! status: ${response.status}, details: ${errorData.error || 'Unknown error'}`);
-      }
-
-      const addedPost = await response.json(); // Ambil postingan yang ditambahkan dari respons
-
-      // Tambahkan postingan baru ke state lokal dan atur ulang propertinya
-      setPosts(prevPosts => {
-        const updatedPosts = [
-            {
-                ...addedPost,
-                author: { login: addedPost.author_name, avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(addedPost.author_name)}&background=random` },
-                labels: { nodes: addedPost.tags ? addedPost.tags.split(',').map(tag => ({ name: tag.trim(), color: getRandomColor() })) : [] }
-            },
-            ...prevPosts
-        ];
-        return updatedPosts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)); // Urutkan ulang
-      });
-
-      setNewArticle({ title: '', body: '', authorName: '', tags: '' }); // Reset formulir
-      setShowAddArticleForm(false); // Sembunyikan formulir
-      // Setelah menambahkan artikel, refresh komentar untuk memastikan semua data konsisten
-      await fetchComments();
-      Swal.fire('Berhasil!', 'Artikel berhasil ditambahkan.', 'success');
-    } catch (err) {
-      console.error('Error submitting article:', err);
-      Swal.fire('Gagal!', `Gagal menambahkan artikel: ${err.message}`, 'error');
-    } finally {
-      setIsSubmittingArticle(false); // Akhiri loading, terlepas dari sukses/gagal
-    }
-  };
+  }, [getRandomColor]); // getRandomColor adalah dependensi loadSampleData
 
   // Fungsi untuk memformat tanggal
-  const formatDate = (dateString) => {
+  const formatDate = useCallback((dateString) => { // Tambahkan useCallback untuk stabilitas
     if (!dateString) return '';
 
-    // Jika sudah objek Date, format langsung
     if (dateString instanceof Date) {
       const options = { year: 'numeric', month: 'long', day: 'numeric' };
       return dateString.toLocaleDateString('id-ID', options);
     }
 
-    // Jika bukan string, coba konversi ke string
     if (typeof dateString !== 'string') {
       try {
         dateString = String(dateString);
@@ -299,13 +178,11 @@ const IslamicBlog = () => {
 
     try {
       let date;
-      // Tangani format timestamp atau ISO string
-      if (/^\d{10}$/.test(dateString) || /^\d{13}$/.test(dateString)) { // Unix timestamp (seconds or milliseconds)
+      if (/^\d{10}$/.test(dateString) || /^\d{13}$/.test(dateString)) {
         date = new Date(parseInt(dateString) * (/^\d{10}$/.test(dateString) ? 1000 : 1));
-      } else if (/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z?/.test(dateString) || dateString.includes('GMT') || dateString.includes('UTC')) { // ISO string like 2023-11-15T07:30:00.000Z or with timezone
+      } else if (/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z?/.test(dateString) || dateString.includes('GMT') || dateString.includes('UTC')) {
           date = new Date(dateString);
       } else {
-        // Coba parsing standar untuk format lain (contoh: PostgreSQL TIMESTAMPTZ)
         date = new Date(dateString);
       }
 
@@ -320,26 +197,139 @@ const IslamicBlog = () => {
       console.error('Date parsing error:', e, 'Original input:', dateString);
       return dateString;
     }
-  };
+  }, []); // Dependensi kosong
 
+  // Fungsi untuk mengambil semua data (postingan dan komentar)
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Ambil postingan dari backend API
+      const postsResponse = await fetch('/api/posts');
+      if (!postsResponse.ok) {
+        throw new Error(`HTTP error! status: ${postsResponse.status}`);
+      }
+      const postsData = await postsResponse.json();
+
+      const processedPosts = postsData.map(post => ({
+          id: post.id,
+          title: post.title,
+          body: post.body,
+          created_at: post.created_at,
+          author: {
+              login: post.author_name,
+              avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(post.author_name)}&background=random`
+          },
+          labels: {
+              nodes: post.tags ? post.tags.split(',').map(tag => ({
+                  name: tag.trim(),
+                  color: getRandomColor()
+              })) : []
+          }
+      }));
+
+      processedPosts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+      setPosts(processedPosts); // Ini akan memicu re-render
+
+      // Panggil fetchComments dengan 'processedPosts' yang baru saja diambil
+      await fetchComments(processedPosts); // MELEWATKAN processedPosts ke fetchComments
+
+      setLoading(false);
+    } catch (err) {
+      console.error('Error fetching data:', err);
+      loadSampleData(); // Fallback ke data sampel jika pengambilan gagal
+      setError('Gagal memuat artikel dari server. Menampilkan data sampel.');
+      Swal.fire({
+        title: 'Peringatan',
+        text: 'Gagal memuat data dari server. Menampilkan data contoh sebagai fallback.',
+        icon: 'warning',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#16a34a'
+      });
+    }
+  }, [fetchComments, getRandomColor, loadSampleData]); // fetchData bergantung pada fetchComments (yang stabil), getRandomColor, dan loadSampleData
+
+  // useEffect utama untuk memanggil fetchData saat komponen dimuat
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]); // Hanya bergantung pada fetchData (yang sudah stabil berkat useCallback)
+
+
+  // Menangani klik tombol "Tulis Artikel" untuk menampilkan formulir
+  const handleAddArticleClick = useCallback(() => {
+    setShowAddArticleForm(true);
+  }, []);
+
+  // Menangani perubahan input di formulir artikel
+  const handleArticleFormChange = useCallback((e) => {
+    const { name, value } = e.target;
+    setNewArticle(prev => ({ ...prev, [name]: value }));
+  }, []);
+
+  // Menangani pengiriman formulir artikel baru
+  const handleArticleSubmit = useCallback(async (e) => {
+    e.preventDefault();
+    setIsSubmittingArticle(true);
+    try {
+      const response = await fetch('/api/posts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newArticle),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`HTTP error! status: ${response.status}, details: ${errorData.error || 'Unknown error'}`);
+      }
+
+      const addedPost = await response.json();
+
+      setPosts(prevPosts => {
+        const updatedPosts = [
+            {
+                ...addedPost,
+                author: { login: addedPost.author_name, avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(addedPost.author_name)}&background=random` },
+                labels: { nodes: addedPost.tags ? addedPost.tags.split(',').map(tag => ({ name: tag.trim(), color: getRandomColor() })) : [] }
+            },
+            ...prevPosts
+        ];
+        return updatedPosts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      });
+
+      setNewArticle({ title: '', body: '', authorName: '', tags: '' });
+      setShowAddArticleForm(false);
+      // Setelah menambahkan artikel, panggil fetchData untuk me-refresh semua data
+      await fetchData(); // Menggunakan fetchData untuk me-refresh
+      Swal.fire('Berhasil!', 'Artikel berhasil ditambahkan.', 'success');
+    } catch (err) {
+      console.error('Error submitting article:', err);
+      Swal.fire('Gagal!', `Gagal menambahkan artikel: ${err.message}`, 'error');
+    } finally {
+      setIsSubmittingArticle(false);
+    }
+  }, [newArticle, fetchData, getRandomColor]); // Dependensi newArticle, fetchData, getRandomColor
 
   // Menangani klik tombol "Tambah Komentar" pada modal artikel
-  const handleAddCommentClick = (postId) => {
-    setNewComment({ postId, commenterName: '', commentText: '' }); // Atur postId untuk komentar
-    setShowAddCommentForm(true); // Tampilkan formulir komentar
-  };
+  const handleAddCommentClick = useCallback((postId) => {
+    setNewComment({ postId, commenterName: '', commentText: '' });
+    setShowAddCommentForm(true);
+  }, []);
 
   // Menangani perubahan input di formulir komentar
-  const handleCommentFormChange = (e) => {
+  const handleCommentFormChange = useCallback((e) => {
     const { name, value } = e.target;
     setNewComment(prev => ({ ...prev, [name]: value }));
-  };
+  }, []);
 
   // Menangani pengiriman formulir komentar baru
-  const handleCommentSubmit = async (e) => {
+  const handleCommentSubmit = useCallback(async (e) => {
     e.preventDefault();
-    if (!newComment.postId) return; // Pastikan ada postId
-    setIsSubmittingComment(true); // Mulai loading
+    if (!newComment.postId) return;
+    setIsSubmittingComment(true);
 
     try {
       const response = await fetch(`/api/posts/${newComment.postId}/comments`, {
@@ -360,7 +350,6 @@ const IslamicBlog = () => {
 
       const addedComment = await response.json();
 
-      // Perbarui state komentar untuk postingan yang spesifik
       const correspondingPost = posts.find(p => p.id === newComment.postId);
       if (correspondingPost) {
         const normalizedPostTitle = normalizeTitle(correspondingPost.title);
@@ -376,24 +365,24 @@ const IslamicBlog = () => {
               text: addedComment.comment_text,
               createdAt: addedComment.created_at
             },
-            ...(prevComments[normalizedPostTitle] || []) // Tambahkan komentar lama
-          ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) // Urutkan
+            ...(prevComments[normalizedPostTitle] || [])
+          ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
         }));
       }
 
-      setNewComment({ postId: null, commenterName: '', commentText: '' }); // Reset formulir
-      setShowAddCommentForm(false); // Sembunyikan formulir
+      setNewComment({ postId: null, commenterName: '', commentText: '' });
+      setShowAddCommentForm(false);
       Swal.fire('Berhasil!', 'Komentar berhasil ditambahkan.', 'success');
     } catch (err) {
       console.error('Error submitting comment:', err);
       Swal.fire('Gagal!', `Gagal menambahkan komentar: ${err.message}`, 'error');
     } finally {
-      setIsSubmittingComment(false); // Akhiri loading, terlepas dari sukses/gagal
+      setIsSubmittingComment(false);
     }
-  };
+  }, [newComment, posts, normalizeTitle]); // Dependensi newComment, posts, normalizeTitle
 
   // Fungsi untuk me-refresh komentar
-  const refreshComments = async (currentArticlePost = null) => {
+  const refreshComments = useCallback(async (currentArticlePost = null) => {
     try {
       Swal.fire({
         title: 'Memuat Komentar',
@@ -404,8 +393,8 @@ const IslamicBlog = () => {
         }
       });
 
-      // Ambil komentar, jika ada postingan yang sedang dibuka, ambil komentarnya saja
-      await fetchComments(currentArticlePost ? currentArticlePost.id : null);
+      // Panggil fetchData untuk me-refresh semua postingan dan komentar
+      await fetchData(); // Menggunakan fetchData untuk refresh semua data
 
       Swal.close();
 
@@ -416,7 +405,6 @@ const IslamicBlog = () => {
         confirmButtonText: 'OK',
         confirmButtonColor: '#16a34a'
       }).then(() => {
-        // Jika ada artikel yang sedang dibuka, tampilkan lagi dengan komentar terbaru
         if (currentArticlePost) {
           handleReadMore(currentArticlePost);
         }
@@ -431,20 +419,20 @@ const IslamicBlog = () => {
         confirmButtonColor: '#16a34a'
       });
     }
-  };
+  }, [fetchData, handleReadMore]); // fetchData dan handleReadMore adalah dependensi
 
   // Mengambil komentar untuk postingan tertentu (berdasarkan judul yang dinormalisasi)
-  const getCommentsForPost = (post) => {
+  const getCommentsForPost = useCallback((post) => {
     const normalizedTitle = normalizeTitle(post.title);
     return comments[normalizedTitle] || [];
-  };
+  }, [comments, normalizeTitle]);
 
   // Menangani klik tombol "Baca Selengkapnya" (menampilkan modal artikel)
-  const handleReadMore = (post) => {
+  const handleReadMore = useCallback((post) => { // useCallback untuk handleReadMore
     try {
       const title = post.title || 'Artikel';
       const bodyContent = post.body || '';
-      const postComments = getCommentsForPost(post); // Ambil komentar untuk postingan ini
+      const postComments = getCommentsForPost(post);
 
       let commentsHTML = '';
 
@@ -467,7 +455,6 @@ const IslamicBlog = () => {
 
         commentsHTML += '</div>';
       } else {
-        // Pesan jika belum ada komentar
         commentsHTML += `
           <div class="mt-6 pt-6 border-t border-gray-200">
             <h3 class="text-lg font-bold mb-4">Komentar</h3>
@@ -476,7 +463,6 @@ const IslamicBlog = () => {
         `;
       }
 
-      // Tombol aksi di dalam modal
       const actionButtons = `
         <div class="mt-4 text-center flex justify-center space-x-4">
           <button
@@ -494,13 +480,11 @@ const IslamicBlog = () => {
         </div>
       `;
 
-      // Info terakhir diperbarui
       const lastUpdateInfo = lastCommentFetch ?
         `<div class="text-center text-xs text-gray-500 mt-2">
           Komentar terakhir diperbarui: ${formatDate(lastCommentFetch)} ${new Date(lastCommentFetch).toLocaleTimeString('id-ID')}
         </div>` : '';
 
-      // Menampilkan modal SweetAlert2
       Swal.fire({
         title: title,
         html: `
@@ -516,15 +500,14 @@ const IslamicBlog = () => {
         confirmButtonText: 'Tutup',
         confirmButtonColor: '#16a34a',
         didOpen: () => {
-          // Tambahkan event listener ke tombol-tombol di dalam modal
           document.getElementById('addCommentBtn').addEventListener('click', () => {
-            Swal.close(); // Tutup modal saat tombol diklik
-            handleAddCommentClick(post.id); // Panggil fungsi tambah komentar dengan ID postingan
+            Swal.close();
+            handleAddCommentClick(post.id);
           });
 
           document.getElementById('refreshCommentsBtn').addEventListener('click', () => {
-            Swal.close(); // Tutup modal saat tombol diklik
-            refreshComments(post); // Refresh komentar untuk postingan ini
+            Swal.close();
+            refreshComments(post);
           });
         }
       });
@@ -532,7 +515,7 @@ const IslamicBlog = () => {
       console.error('Error showing article:', error);
       Swal.fire('Error', 'Tidak dapat menampilkan artikel. Silakan coba lagi nanti.', 'error');
     }
-  };
+  }, [getCommentsForPost, formatDate, lastCommentFetch, handleAddCommentClick, refreshComments]); // Dependensi
 
   // Tampilan loading saat data sedang diambil
   if (loading) {
