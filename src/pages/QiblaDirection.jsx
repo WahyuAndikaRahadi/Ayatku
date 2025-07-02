@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import axios from 'axios'
 import Swal from 'sweetalert2'
 import { motion } from 'framer-motion'
@@ -7,37 +7,10 @@ const QiblaDirection = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [location, setLocation] = useState(null)
-  const [currentLocationName, setCurrentLocationName] = useState('Mendapatkan lokasi...'); // State baru untuk nama lokasi
   const [qiblaData, setQiblaData] = useState(null)
   const [compassUrl, setCompassUrl] = useState('')
   const [isRefreshing, setIsRefreshing] = useState(false)
   const compassRef = useRef(null)
-
-  // Fungsi untuk mendapatkan nama lokasi dari serverless API
-  const fetchLocationName = useCallback(async (lat, lon) => {
-    const url = `/api/opencage?lat=${lat}&lon=${lon}`;
-    try {
-      const res = await fetch(url);
-      const data = await res.json();
-      if (data.city && data.country) {
-        setCurrentLocationName(`${data.city}, ${data.country}`);
-      } else {
-        // Jika tidak ada kota, coba gunakan komponen lain dari hasil OpenCage
-        const components = data.components || {};
-        const detectedCity = components.city || components.town || components.village || components.county;
-        const detectedProvince = components.state || components.province;
-
-        if (detectedCity) {
-            setCurrentLocationName(`${detectedCity}${detectedProvince ? `, ${detectedProvince}` : ''}`);
-        } else {
-            setCurrentLocationName(`Koordinat: (${lat.toFixed(2)}, ${lon.toFixed(2)})`);
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching location name:', error);
-      setCurrentLocationName("Gagal mengambil nama lokasi");
-    }
-  }, []);
 
   useEffect(() => {
     // Fungsi untuk mendapatkan lokasi pengguna
@@ -49,7 +22,6 @@ const QiblaDirection = () => {
             const { latitude, longitude } = position.coords
             setLocation({ latitude, longitude })
             fetchQiblaDirection(latitude, longitude)
-            fetchLocationName(latitude, longitude); // Panggil untuk mendapatkan nama lokasi
           },
           (error) => {
             console.error('Error getting location:', error)
@@ -62,7 +34,6 @@ const QiblaDirection = () => {
               confirmButtonText: 'OK',
               confirmButtonColor: '#16a34a'
             })
-            setCurrentLocationName("Lokasi tidak tersedia"); // Set status jika gagal
           }
         )
       } else {
@@ -75,12 +46,11 @@ const QiblaDirection = () => {
           confirmButtonText: 'OK',
           confirmButtonColor: '#16a34a'
         })
-        setCurrentLocationName("Geolocation tidak didukung"); // Set status jika tidak didukung
       }
     }
 
     getLocation()
-  }, [fetchLocationName]) // Tambahkan fetchLocationName sebagai dependensi
+  }, [])
 
   const fetchQiblaDirection = async (latitude, longitude) => {
     try {
@@ -112,20 +82,17 @@ const QiblaDirection = () => {
   const refreshLocation = () => {
     setIsRefreshing(true)
     setError(null)
-    setCurrentLocationName('Mendapatkan lokasi...'); // Reset nama lokasi saat refresh
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords
           setLocation({ latitude, longitude })
           fetchQiblaDirection(latitude, longitude)
-          fetchLocationName(latitude, longitude); // Panggil untuk mendapatkan nama lokasi setelah refresh
         },
         (error) => {
           setError('Tidak dapat mengakses lokasi Anda. Mohon aktifkan izin lokasi.')
           setLoading(false)
           setIsRefreshing(false)
-          setCurrentLocationName("Lokasi tidak tersedia"); // Set status jika gagal
         }
       )
     }
@@ -194,20 +161,6 @@ const QiblaDirection = () => {
           
           <div className="p-6">
             <div className="space-y-4">
-              {/* Tampilkan nama lokasi saat ini */}
-              <div className="flex justify-between items-center border-b border-gray-100 pb-3">
-                <div className="flex items-center">
-                  <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center mr-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                  </div>
-                  <span className="text-gray-600 font-medium">Lokasi Anda</span>
-                </div>
-                <span className="font-semibold text-gray-800">{currentLocationName}</span>
-              </div>
-
               <div className="flex justify-between items-center border-b border-gray-100 pb-3">
                 <div className="flex items-center">
                   <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center mr-3">
