@@ -49,8 +49,8 @@ const IslamicBlog = () => {
   }, []);
 
   // Callback untuk mengambil komentar dari backend
-  // PERHATIAN: Sekarang menerima 'currentPosts' sebagai argumen
-  const fetchComments = useCallback(async (currentPosts, postId = null) => { // MENAMBAHKAN currentPosts sebagai parameter
+  const fetchComments = useCallback(async (currentPosts, postId = null) => {
+    console.log('fetchComments called'); // Log added
     try {
       let commentsData = [];
       if (postId) {
@@ -60,7 +60,6 @@ const IslamicBlog = () => {
         commentsData = await response.json();
       } else {
         // Jika tidak ada postId, ambil komentar untuk semua postingan yang sudah ada
-        // Menggunakan currentPosts yang DILEWATKAN sebagai argumen, bukan dari closure state
         const allCommentsPromises = currentPosts.map(p =>
           fetch(`/api/posts/${p.id}/comments`)
             .then(res => {
@@ -83,8 +82,7 @@ const IslamicBlog = () => {
 
       const commentsMap = {};
       commentsData.forEach(comment => {
-        // Temukan postingan yang sesuai untuk mengasosiasikan komentar
-        const correspondingPost = currentPosts.find(p => p.id === comment.post_id || p.id === comment.postId); // Menggunakan currentPosts dari argumen
+        const correspondingPost = currentPosts.find(p => p.id === comment.post_id || p.id === comment.postId);
         if (correspondingPost) {
           const normalizedPostTitle = normalizeTitle(correspondingPost.title);
           if (!commentsMap[normalizedPostTitle]) {
@@ -102,22 +100,22 @@ const IslamicBlog = () => {
         }
       });
 
-      // Urutkan komentar berdasarkan tanggal (terbaru dahulu)
       Object.keys(commentsMap).forEach(title => {
         commentsMap[title].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       });
 
       setComments(commentsMap);
-      setLastCommentFetch(new Date()); // Perbarui waktu pengambilan terakhir
+      setLastCommentFetch(new Date());
       return commentsMap;
     } catch (commentsErr) {
       console.error('Error fetching comments:', commentsErr);
       return null;
     }
-  }, [normalizeTitle]); // <--- Dependency array sekarang hanya bergantung pada normalizeTitle
+  }, [normalizeTitle]);
 
   // Fungsi untuk memuat data sampel jika pengambilan dari API gagal
   const loadSampleData = useCallback(() => {
+    console.log('loadSampleData called'); // Log added
     const samplePosts = [
       {
         id: 1,
@@ -293,10 +291,11 @@ const IslamicBlog = () => {
       console.error('Error showing article:', error);
       Swal.fire('Error', 'Tidak dapat menampilkan artikel. Silakan coba lagi nanti.', 'error');
     }
-  }, [getCommentsForPost, formatDate, lastCommentFetch]); // handleAddCommentClick dan refreshComments akan ditambahkan nanti sebagai dependensi
+  }, [getCommentsForPost, formatDate, lastCommentFetch]);
 
   // Fungsi untuk mengambil semua data (postingan dan komentar)
   const fetchData = useCallback(async () => {
+    console.log('fetchData called'); // Log added
     try {
       setLoading(true);
       setError(null);
@@ -327,15 +326,14 @@ const IslamicBlog = () => {
 
       processedPosts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
-      setPosts(processedPosts); // Ini akan memicu re-render
+      setPosts(processedPosts);
 
-      // Panggil fetchComments dengan 'processedPosts' yang baru saja diambil
-      await fetchComments(processedPosts); // MELEWATKAN processedPosts ke fetchComments
+      await fetchComments(processedPosts);
 
       setLoading(false);
     } catch (err) {
       console.error('Error fetching data:', err);
-      loadSampleData(); // Fallback ke data sampel jika pengambilan gagal
+      loadSampleData();
       setError('Gagal memuat artikel dari server. Menampilkan data sampel.');
       Swal.fire({
         title: 'Peringatan',
@@ -345,12 +343,13 @@ const IslamicBlog = () => {
         confirmButtonColor: '#16a34a'
       });
     }
-  }, [fetchComments, getRandomColor, loadSampleData]); // fetchData bergantung pada fetchComments (yang stabil), getRandomColor, dan loadSampleData
+  }, [fetchComments, getRandomColor, loadSampleData]);
 
   // useEffect utama untuk memanggil fetchData saat komponen dimuat
   useEffect(() => {
+    console.log('useEffect (initial data fetch) triggered'); // Log added
     fetchData();
-  }, [fetchData]); // Hanya bergantung pada fetchData (yang sudah stabil berkat useCallback)
+  }, [fetchData]);
 
 
   // Menangani klik tombol "Tulis Artikel" untuk menampilkan formulir
@@ -398,8 +397,7 @@ const IslamicBlog = () => {
 
       setNewArticle({ title: '', body: '', authorName: '', tags: '' });
       setShowAddArticleForm(false);
-      // Setelah menambahkan artikel, panggil fetchData untuk me-refresh semua data
-      await fetchData(); // Menggunakan fetchData untuk me-refresh
+      await fetchData();
       Swal.fire('Berhasil!', 'Artikel berhasil ditambahkan.', 'success');
     } catch (err) {
       console.error('Error submitting article:', err);
@@ -412,7 +410,7 @@ const IslamicBlog = () => {
   // Menangani klik tombol "Tambah Komentar" pada modal artikel
   const handleAddCommentClick = useCallback((postId) => {
     setNewComment({ postId, commenterName: '', commentText: '' });
-    setShowAddAddCommentForm(true); // Perbaikan: menggunakan setShowAddAddCommentForm
+    setShowAddAddCommentForm(true);
   }, []);
 
   // Menangani perubahan input di formulir komentar
@@ -467,7 +465,7 @@ const IslamicBlog = () => {
       }
 
       setNewComment({ postId: null, commenterName: '', commentText: '' });
-      setShowAddAddCommentForm(false); // Perbaikan: menggunakan setShowAddAddCommentForm
+      setShowAddAddCommentForm(false);
       Swal.fire('Berhasil!', 'Komentar berhasil ditambahkan.', 'success');
     } catch (err) {
       console.error('Error submitting comment:', err);
@@ -479,6 +477,7 @@ const IslamicBlog = () => {
 
   // Fungsi untuk me-refresh komentar
   const refreshComments = useCallback(async (currentArticlePost = null) => {
+    console.log('refreshComments called'); // Log added
     try {
       Swal.fire({
         title: 'Memuat Komentar',
@@ -489,8 +488,7 @@ const IslamicBlog = () => {
         }
       });
 
-      // Panggil fetchData untuk me-refresh semua postingan dan komentar
-      await fetchData(); // Menggunakan fetchData untuk refresh semua data
+      await fetchData();
 
       Swal.close();
 
@@ -515,14 +513,10 @@ const IslamicBlog = () => {
         confirmButtonColor: '#16a34a'
       });
     }
-  }, [fetchData, handleReadMore]); // fetchData dan handleReadMore adalah dependensi
+  }, [fetchData, handleReadMore]);
 
 
-  // Tambahkan handleAddCommentClick dan refreshComments ke dependensi handleReadMore
   useEffect(() => {
-    // This effect ensures handleReadMore has the latest callback references
-    // It's a bit of a dance due to Swal's imperative nature and event listeners
-    // but the core functions are stable via useCallback now.
   }, [handleReadMore, handleAddCommentClick, refreshComments]);
 
 
@@ -559,7 +553,6 @@ const IslamicBlog = () => {
   // Render utama komponen blog
   return (
     <div className="container-custom py-8">
-      {/* Pesan error jika ada (misalnya, data sampel dimuat karena gagal fetch) */}
       {error && (
         <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
           <div className="flex">
@@ -575,7 +568,6 @@ const IslamicBlog = () => {
         </div>
       )}
 
-      {/* Bagian judul dan deskripsi blog */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -588,7 +580,6 @@ const IslamicBlog = () => {
         </p>
       </motion.div>
 
-      {/* Tombol Refresh Komentar dan Tulis Artikel */}
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-8 w-full">
         <button
           onClick={() => refreshComments()}
@@ -611,14 +602,12 @@ const IslamicBlog = () => {
         </button>
       </div>
 
-      {/* Indikator Terakhir Diperbarui */}
       {lastCommentFetch && (
         <div className="text-center text-sm text-gray-500 mb-6">
           Komentar terakhir diperbarui: {formatDate(lastCommentFetch)} {new Date(lastCommentFetch).toLocaleTimeString('id-ID')}
         </div>
       )}
 
-      {/* Formulir Tambah Artikel */}
       {showAddArticleForm && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -704,7 +693,6 @@ const IslamicBlog = () => {
         </motion.div>
       )}
 
-      {/* Formulir Tambah Komentar */}
       {showAddCommentForm && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -756,7 +744,7 @@ const IslamicBlog = () => {
               </button>
               <button
                 type="button"
-                onClick={() => setShowAddAddCommentForm(false)} // Perbaikan: menggunakan setShowAddAddCommentForm
+                onClick={() => setShowAddAddCommentForm(false)}
                 className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={isSubmittingComment}
               >
@@ -767,7 +755,6 @@ const IslamicBlog = () => {
         </motion.div>
       )}
 
-      {/* Pesan jika tidak ada artikel ditemukan */}
       {posts.length === 0 && (
         <div className="text-center py-12 bg-white rounded-lg shadow-md">
           <svg className="h-16 w-16 mx-auto text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -780,7 +767,6 @@ const IslamicBlog = () => {
         </div>
       )}
 
-      {/* Grid Postingan Blog */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {posts.map((post) => {
           const postComments = getCommentsForPost(post);
@@ -816,7 +802,6 @@ const IslamicBlog = () => {
                 </p>
 
                 <div className="flex flex-wrap gap-2 mb-4">
-                 {/* Render tag */}
                  {post.labels.nodes.map((label, index) => (
                   <span
                     key={index}
