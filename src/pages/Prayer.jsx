@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Swal from 'sweetalert2'
 import { motion } from 'framer-motion'
 
@@ -136,7 +136,7 @@ const Prayer = () => {
           position => {
             const { latitude, longitude } = position.coords
             setLocation({ latitude, longitude })
-            fetchLocationInfo(latitude, longitude)
+            fetchLocationInfo(latitude, longitude) // Ambil nama lokasi
             fetchPrayerTimes(latitude, longitude)
           },
           error => {
@@ -457,12 +457,12 @@ const Prayer = () => {
   }
 
   // Fetch city information based on coordinates using OpenCage API
-  const fetchLocationInfo = async (latitude, longitude) => {
+  const fetchLocationInfo = useCallback(async (latitude, longitude) => {
     try {
-      const formattedLatitude = parseFloat(latitude).toFixed(8)
-      const formattedLongitude = parseFloat(longitude).toFixed(8)
+      const formattedLatitude = parseFloat(latitude).toFixed(8);
+      const formattedLongitude = parseFloat(longitude).toFixed(8);
       
-      const locationApiUrl = `/api/opencage?lat=${formattedLatitude}&lon=${formattedLongitude}`
+      const locationApiUrl = `/api/opencage?lat=${formattedLatitude}&lon=${formattedLongitude}`;
       
       const response = await fetch(locationApiUrl);
       const data = await response.json();
@@ -472,14 +472,28 @@ const Prayer = () => {
         setCityInfo({
           city: data.city,
           province: data.country // Using country as province for simplicity based on your example
-        })
+        });
       } else {
-        console.log('Location data format not recognized from OpenCage:', data)
+        // Jika tidak ada kota, coba gunakan komponen lain dari hasil OpenCage
+        const components = data.components || {};
+        const detectedCity = components.city || components.town || components.village || components.county;
+        const detectedProvince = components.state || components.province;
+
+        if (detectedCity) {
+            setCityInfo({
+                city: detectedCity,
+                province: detectedProvince
+            });
+        } else {
+            console.log('Location data format not recognized from OpenCage:', data);
+            setCityInfo(null); // Reset cityInfo if no recognizable city
+        }
       }
     } catch (err) {
-      console.warn('Error fetching location info from OpenCage:', err)
+      console.warn('Error fetching location info from OpenCage:', err);
+      setCityInfo(null); // Reset cityInfo on error
     }
-  }
+  }, []); // useCallback dengan dependensi kosong agar tidak dibuat ulang
 
   const fetchPrayerTimes = async (latitude, longitude) => {
     try {
@@ -875,7 +889,8 @@ const Prayer = () => {
           </div>
         ) : location ? (
           <div>
-            <p>Jadwal sholat berdasarkan koordinat:</p>
+            {/* Tampilkan pesan bahwa lokasi sedang diambil atau tidak tersedia */}
+            <p>Mendapatkan nama kota untuk koordinat:</p>
             <p className="font-medium">
               {location.latitude.toFixed(6)}, {location.longitude.toFixed(6)}
             </p>
