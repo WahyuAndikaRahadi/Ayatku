@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import Swal from 'sweetalert2';
 import { motion } from 'framer-motion';
+import ReactMarkdown from 'react-markdown'; // Import ReactMarkdown
 
 const IslamicQABot = () => {
     const [question, setQuestion] = useState('');
@@ -29,13 +30,12 @@ const IslamicQABot = () => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 contents: [{ parts: [{ text: prompt }] }],
-                // You can add other parameters if needed, for example:
-                // generationConfig: {
-                //     temperature: 0.7,
-                //     topK: 40,
-                //     topP: 0.95,
-                //     maxOutputTokens: 1024,
-                // },
+                generationConfig: {
+                    temperature: 0.7,
+                    topK: 40,
+                    topP: 0.95,
+                    maxOutputTokens: 500, // Limit response length to 500 tokens
+                },
             })
         });
 
@@ -47,7 +47,7 @@ const IslamicQABot = () => {
 
         const data = await res.json();
         // Ensure the response structure is as expected
-        return data?.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I couldn't generate a valid response.";
+        return data?.candidates?.[0]?.content?.parts?.[0]?.text || "Maaf, saya tidak dapat menghasilkan respons yang valid.";
     };
 
     const handleAskQuestion = async (e) => {
@@ -67,7 +67,7 @@ const IslamicQABot = () => {
         setError(null);
         setAnswer(null); // Reset previous answer
 
-        const promptTemplate = `Anda adalah asisten AI yang ahli dalam pengetahuan Islam. Jawablah pertanyaan berikut secara informatif, akurat, dan sesuai dengan ajaran Islam. Jika Anda tidak yakin, katakan bahwa Anda tidak memiliki informasi yang cukup atau sarankan untuk berkonsultasi dengan ulama.
+        const promptTemplate = `Anda adalah asisten AI yang ahli dalam pengetahuan Islam. Jawablah pertanyaan berikut secara informatif, akurat, dan sesuai dengan ajaran Islam. Jika Anda tidak yakin, katakan bahwa Anda tidak memiliki informasi yang cukup atau sarankan untuk berkonsultasi dengan ulama. Berikan jawaban dalam format markdown jika memungkinkan (misal: bold, list).
 
 Pertanyaan: "${question}"
 
@@ -93,6 +93,14 @@ Jawaban:`;
             });
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleKeyDown = (e) => {
+        // Submit on Enter key press, but allow Shift + Enter for new line
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault(); // Prevent default new line behavior
+            handleAskQuestion(e); // Call the submit function
         }
     };
 
@@ -138,6 +146,7 @@ Jawaban:`;
                                 placeholder="Contoh: Apa hikmah di balik puasa Ramadhan? Atau, bagaimana konsep tawakkal dalam Islam?"
                                 value={question}
                                 onChange={(e) => setQuestion(e.target.value)}
+                                onKeyDown={handleKeyDown} // Added onKeyDown event listener
                                 disabled={loading}
                             ></textarea>
                         </div>
@@ -177,14 +186,14 @@ Jawaban:`;
                         </svg>
                     </div>
 
-                    <div className="p-6 min-h-[300px] relative flex-grow flex items-center justify-center">
+                    <div className="p-6 max-h-[400px] overflow-y-auto relative flex-grow flex flex-col justify-start items-start"> {/* Added max-h and overflow-y-auto */}
                         {loading ? (
                             <div className="absolute inset-0 flex flex-col justify-center items-center bg-white bg-opacity-80 z-10">
                                 <div className="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-16 w-16 mb-4 mx-auto border-t-blue-500 animate-spin"></div>
                                 <p className="text-blue-700 font-semibold text-lg">AI sedang berpikir keras...</p>
                             </div>
                         ) : error ? (
-                            <div className="text-center text-red-700 flex flex-col items-center justify-center h-full">
+                            <div className="text-center text-red-700 flex flex-col items-center justify-center h-full w-full">
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-14 w-14 mb-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
@@ -197,12 +206,12 @@ Jawaban:`;
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.5 }}
-                                className="prose max-w-none text-gray-800 text-lg leading-relaxed" // Tailwind Typography plugin jika diinstal
+                                className="prose max-w-none text-gray-800 text-lg leading-relaxed w-full" // Added w-full for markdown content
                             >
-                                <p className="whitespace-pre-wrap">{answer}</p>
+                                <ReactMarkdown>{answer}</ReactMarkdown> {/* Use ReactMarkdown here */}
                             </motion.div>
                         ) : (
-                            <div className="text-center text-gray-500 flex flex-col items-center justify-center h-full">
+                            <div className="text-center text-gray-500 flex flex-col items-center justify-center h-full w-full">
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mb-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9.228a4.5 4.5 0 116.364 0L12 11.636l-2.121 2.122a4.5 4.5 0 01-6.364-6.364l.98-.979a2.5 2.5 0 013.536 0L12 7.364zM12 11.636l2.121-2.122a4.5 4.5 0 016.364 6.364l-.979.979a2.5 2.5 0 01-3.536 0L12 14.636z" />
                                 </svg>
@@ -267,6 +276,21 @@ Jawaban:`;
                             <span className="font-semibold text-lg text-gray-900 block mb-1">Verifikasi Informasi</span>
                             <p className="text-gray-700 text-sm">
                                 Untuk masalah serius, fatwa, atau keputusan penting, selalu konsultasikan dengan ulama yang berwenang.
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* New Disclaimer: Hindari Takhayul dan Bid'ah */}
+                    <div className="bg-red-50 p-5 rounded-2xl flex items-start">
+                        <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 mr-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-red-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <span className="font-semibold text-lg text-gray-900 block mb-1">Hindari Takhayul dan Bid'ah</span>
+                            <p className="text-gray-700 text-sm">
+                                AI tidak akan menjawab pertanyaan yang berkaitan dengan takhayul, khurafat, atau bid'ah yang tidak memiliki dasar dalam ajaran Islam yang shahih.
                             </p>
                         </div>
                     </div>
