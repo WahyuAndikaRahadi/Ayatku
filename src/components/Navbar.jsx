@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { FaBars, FaTimes } from 'react-icons/fa' // FaQuran dihapus
+import { FaBars, FaTimes } from 'react-icons/fa'
 import { motion } from 'framer-motion'
 
 
@@ -30,8 +30,8 @@ const Navbar = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo and Brand Name - Positioned more to the left edge */}
           <div className="flex items-center ml-0 md:-ml-3">
-            <a 
-              href="/" 
+            <a
+              href="/"
               className="flex items-center"
               onClick={(e) => {
                 e.preventDefault();
@@ -39,8 +39,7 @@ const Navbar = () => {
               }}
             >
               {/* Menggunakan tag img untuk logo dari public/icons/ayatku.png */}
-              <img src="/icons/ayatku.png" alt="Ayatku Logo" className="h-8 w-8 mr-2" />
-              <span className="text-xl font-bold text-emerald-600">Ayatku</span>
+            <img src="/icons/ayatku.png" alt="Ayatku Logo" className="h-20 w-25 mr-2" /> {/* Changed h-10 w-10 to h-12 w-12 for a larger logo */}
             </a>
           </div>
 
@@ -49,8 +48,8 @@ const Navbar = () => {
             <a
               href="/"
               className={`px-2 py-2 rounded-md font-medium transition-colors ${
-                isActive('/') 
-                  ? 'text-emerald-600 font-semibold' 
+                isActive('/')
+                  ? 'text-emerald-600 font-semibold'
                   : 'text-gray-700 hover:text-emerald-600'
               }`}
               onClick={(e) => {
@@ -63,8 +62,8 @@ const Navbar = () => {
             <a
               href="/about"
               className={`px-2 py-2 rounded-md font-medium transition-colors ${
-                isActive('/about') 
-                  ? 'text-emerald-600 font-semibold' 
+                isActive('/about')
+                  ? 'text-emerald-600 font-semibold'
                   : 'text-gray-700 hover:text-emerald-600'
               }`}
               onClick={(e) => {
@@ -77,8 +76,8 @@ const Navbar = () => {
             <a
               href="/quran"
               className={`px-2 py-2 rounded-md font-medium transition-colors ${
-                isActive('/quran') 
-                  ? 'text-emerald-600 font-semibold' 
+                isActive('/quran')
+                  ? 'text-emerald-600 font-semibold'
                   : 'text-gray-700 hover:text-emerald-600'
               }`}
               onClick={(e) => {
@@ -91,8 +90,8 @@ const Navbar = () => {
             <a
               href="/hadith"
               className={`px-2 py-2 rounded-md font-medium transition-colors ${
-                isActive('/hadith') 
-                  ? 'text-emerald-600 font-semibold' 
+                isActive('/hadith')
+                  ? 'text-emerald-600 font-semibold'
                   : 'text-gray-700 hover:text-emerald-600'
               }`}
               onClick={(e) => {
@@ -105,8 +104,8 @@ const Navbar = () => {
             <a
               href="/asmaulhusna"
               className={`px-2 py-2 rounded-md font-medium transition-colors ${
-                isActive('/asmaulhusna') 
-                  ? 'text-emerald-600 font-semibold' 
+                isActive('/asmaulhusna')
+                  ? 'text-emerald-600 font-semibold'
                   : 'text-gray-700 hover:text-emerald-600'
               }`}
               onClick={(e) => {
@@ -119,8 +118,8 @@ const Navbar = () => {
             <a
               href="/doa"
               className={`px-2 py-2 rounded-md font-medium transition-colors ${
-                isActive('/doa') 
-                  ? 'text-emerald-600 font-semibold' 
+                isActive('/doa')
+                  ? 'text-emerald-600 font-semibold'
                   : 'text-gray-700 hover:text-emerald-600'
               }`}
               onClick={(e) => {
@@ -133,8 +132,8 @@ const Navbar = () => {
             <a
               href="/calendar"
               className={`px-2 py-2 rounded-md font-medium transition-colors ${
-                isActive('/calendar') 
-                  ? 'text-emerald-600 font-semibold' 
+                isActive('/calendar')
+                  ? 'text-emerald-600 font-semibold'
                   : 'text-gray-700 hover:text-emerald-600'
               }`}
               onClick={(e) => {
@@ -147,8 +146,8 @@ const Navbar = () => {
             <a
               href="/kiblat"
               className={`px-2 py-2 rounded-md font-medium transition-colors ${
-                isActive('/kiblat') 
-                  ? 'text-emerald-600 font-semibold' 
+                isActive('/kiblat')
+                  ? 'text-emerald-600 font-semibold'
                   : 'text-gray-700 hover:text-emerald-600'
               }`}
               onClick={(e) => {
@@ -161,8 +160,8 @@ const Navbar = () => {
             <a
               href="/blog"
               className={`px-2 py-2 rounded-md font-medium transition-colors ${
-                isActive('/blog') 
-                  ? 'text-emerald-600 font-semibold' 
+                isActive('/blog')
+                  ? 'text-emerald-600 font-semibold'
                   : 'text-gray-700 hover:text-emerald-600'
               }`}
               onClick={(e) => {
@@ -175,8 +174,8 @@ const Navbar = () => {
             <a
               href="/prayer"
               className={`px-2 py-2 rounded-md font-medium transition-colors ${
-                isActive('/prayer') 
-                  ? 'text-emerald-600 font-semibold' 
+                isActive('/prayer')
+                  ? 'text-emerald-600 font-semibold'
                   : 'text-gray-700 hover:text-emerald-600'
               }`}
               onClick={(e) => {
@@ -184,7 +183,7 @@ const Navbar = () => {
                 handleNavigation('/prayer');
               }}
             >
-              Jadwal Sholat 
+              Jadwal Sholat
             </a>
           </div>
 
@@ -193,7 +192,7 @@ const Navbar = () => {
 
           {/* Mobile Menu Button */}
           <div className="md:hidden">
-            <button 
+            <button
               onClick={toggleMenu}
               className="text-gray-700 hover:text-emerald-600 focus:outline-none"
             >
@@ -209,7 +208,7 @@ const Navbar = () => {
 
       {/* Mobile Menu - Unchanged */}
       {isOpen && (
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
           exit={{ opacity: 0, height: 0 }}
@@ -220,8 +219,8 @@ const Navbar = () => {
             <a
               href="/"
               className={`block px-3 py-2 rounded-md font-medium transition-colors ${
-                isActive('/') 
-                  ? 'text-emerald-600 bg-gray-50 font-semibold' 
+                isActive('/')
+                  ? 'text-emerald-600 bg-gray-50 font-semibold'
                   : 'text-gray-700 hover:text-emerald-600 hover:bg-gray-50'
               }`}
               onClick={(e) => {
@@ -234,8 +233,8 @@ const Navbar = () => {
             <a
               href="/about"
               className={`block px-3 py-2 rounded-md font-medium transition-colors ${
-                isActive('/about') 
-                  ? 'text-emerald-600 bg-gray-50 font-semibold' 
+                isActive('/about')
+                  ? 'text-emerald-600 bg-gray-50 font-semibold'
                   : 'text-gray-700 hover:text-emerald-600 hover:bg-gray-50'
               }`}
               onClick={(e) => {
@@ -248,8 +247,8 @@ const Navbar = () => {
             <a
               href="/quran"
               className={`block px-3 py-2 rounded-md font-medium transition-colors ${
-                isActive('/quran') 
-                  ? 'text-emerald-600 bg-gray-50 font-semibold' 
+                isActive('/quran')
+                  ? 'text-emerald-600 bg-gray-50 font-semibold'
                   : 'text-gray-700 hover:text-emerald-600 hover:bg-gray-50'
               }`}
               onClick={(e) => {
@@ -262,8 +261,8 @@ const Navbar = () => {
             <a
               href="/hadith"
               className={`block px-3 py-2 rounded-md font-medium transition-colors ${
-                isActive('/hadith') 
-                  ? 'text-emerald-600 bg-gray-50 font-semibold' 
+                isActive('/hadith')
+                  ? 'text-emerald-600 bg-gray-50 font-semibold'
                   : 'text-gray-700 hover:text-emerald-600 hover:bg-gray-50'
               }`}
               onClick={(e) => {
@@ -276,8 +275,8 @@ const Navbar = () => {
             <a
               href="/asmaulhusna"
               className={`block px-3 py-2 rounded-md font-medium transition-colors ${
-                isActive('/asmaulhusna') 
-                  ? 'text-emerald-600 bg-gray-50 font-semibold' 
+                isActive('/asmaulhusna')
+                  ? 'text-emerald-600 bg-gray-50 font-semibold'
                   : 'text-gray-700 hover:text-emerald-600 hover:bg-gray-50'
               }`}
               onClick={(e) => {
@@ -290,8 +289,8 @@ const Navbar = () => {
             <a
               href="/doa"
               className={`block px-3 py-2 rounded-md font-medium transition-colors ${
-                isActive('/doa') 
-                  ? 'text-emerald-600 bg-gray-50 font-semibold' 
+                isActive('/doa')
+                  ? 'text-emerald-600 bg-gray-50 font-semibold'
                   : 'text-gray-700 hover:text-emerald-600 hover:bg-gray-50'
               }`}
               onClick={(e) => {
@@ -304,8 +303,8 @@ const Navbar = () => {
             <a
               href="/calendar"
               className={`block px-3 py-2 rounded-md font-medium transition-colors ${
-                isActive('/calendar') 
-                  ? 'text-emerald-600 bg-gray-50 font-semibold' 
+                isActive('/calendar')
+                  ? 'text-emerald-600 bg-gray-50 font-semibold'
                   : 'text-gray-700 hover:text-emerald-600 hover:bg-gray-50'
               }`}
               onClick={(e) => {
@@ -318,8 +317,8 @@ const Navbar = () => {
             <a
               href="/kiblat"
               className={`block px-3 py-2 rounded-md font-medium transition-colors ${
-                isActive('/kiblat') 
-                  ? 'text-emerald-600 bg-gray-50 font-semibold' 
+                isActive('/kiblat')
+                  ? 'text-emerald-600 bg-gray-50 font-semibold'
                   : 'text-gray-700 hover:text-emerald-600 hover:bg-gray-50'
               }`}
               onClick={(e) => {
@@ -332,8 +331,8 @@ const Navbar = () => {
             <a
               href="/blog"
               className={`block px-3 py-2 rounded-md font-medium transition-colors ${
-                isActive('/blog') 
-                  ? 'text-emerald-600 bg-gray-50 font-semibold' 
+                isActive('/blog')
+                  ? 'text-emerald-600 bg-gray-50 font-semibold'
                   : 'text-gray-700 hover:text-emerald-600 hover:bg-gray-50'
               }`}
               onClick={(e) => {
@@ -346,8 +345,8 @@ const Navbar = () => {
             <a
               href="/prayer"
               className={`block px-3 py-2 rounded-md font-medium transition-colors ${
-                isActive('/prayer') 
-                  ? 'text-emerald-600 bg-gray-50 font-semibold' 
+                isActive('/prayer')
+                  ? 'text-emerald-600 bg-gray-50 font-semibold'
                   : 'text-gray-700 hover:text-emerald-600 hover:bg-gray-50'
               }`}
               onClick={(e) => {
