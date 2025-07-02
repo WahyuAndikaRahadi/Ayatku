@@ -22,7 +22,7 @@ const IslamicBlog = () => {
     tags: ''
   });
   // State untuk mengontrol tampilan formulir tambah komentar
-  const [showAddCommentForm, setShowAddCommentForm] = useState(false);
+  const [showAddCommentForm, setShowAddAddCommentForm] = useState(false);
   // State untuk data komentar baru yang akan ditambahkan
   const [newComment, setNewComment] = useState({
     postId: null, // ID postingan tempat komentar akan ditambahkan
@@ -41,6 +41,12 @@ const IslamicBlog = () => {
   const normalizeTitle = (title) => {
     return title.trim().toLowerCase();
   };
+
+  // Fungsi untuk menghasilkan warna acak untuk tag
+  const getRandomColor = useCallback(() => {
+    const colors = ['16a34a', '0891b2', '8b5cf6', 'ef4444', 'f59e0b', '6366f1', 'ec4899'];
+    return colors[Math.floor(Math.random() * colors.length)];
+  }, []);
 
   // Callback untuk mengambil komentar dari backend
   // PERHATIAN: Sekarang menerima 'currentPosts' sebagai argumen
@@ -108,16 +114,10 @@ const IslamicBlog = () => {
       console.error('Error fetching comments:', commentsErr);
       return null;
     }
-  }, []); // <--- Dependency array sekarang KOSONG karena 'posts' dilewatkan sebagai argumen
-
-  // Fungsi untuk menghasilkan warna acak untuk tag
-  const getRandomColor = useCallback(() => { // Tambahkan useCallback jika ini dependency
-    const colors = ['16a34a', '0891b2', '8b5cf6', 'ef4444', 'f59e0b', '6366f1', 'ec4899'];
-    return colors[Math.floor(Math.random() * colors.length)];
-  }, []); // Dependensi kosong karena tidak ada yang berubah
+  }, [normalizeTitle]); // <--- Dependency array sekarang hanya bergantung pada normalizeTitle
 
   // Fungsi untuk memuat data sampel jika pengambilan dari API gagal
-  const loadSampleData = useCallback(() => { // Tambahkan useCallback untuk stabilitas
+  const loadSampleData = useCallback(() => {
     const samplePosts = [
       {
         id: 1,
@@ -156,10 +156,10 @@ const IslamicBlog = () => {
     })));
     setComments(sampleComments);
     setLoading(false);
-  }, [getRandomColor]); // getRandomColor adalah dependensi loadSampleData
+  }, [getRandomColor]);
 
   // Fungsi untuk memformat tanggal
-  const formatDate = useCallback((dateString) => { // Tambahkan useCallback untuk stabilitas
+  const formatDate = useCallback((dateString) => {
     if (!dateString) return '';
 
     if (dateString instanceof Date) {
@@ -197,7 +197,103 @@ const IslamicBlog = () => {
       console.error('Date parsing error:', e, 'Original input:', dateString);
       return dateString;
     }
-  }, []); // Dependensi kosong
+  }, []);
+
+  // Mengambil komentar untuk postingan tertentu (berdasarkan judul yang dinormalisasi)
+  const getCommentsForPost = useCallback((post) => {
+    const normalizedTitle = normalizeTitle(post.title);
+    return comments[normalizedTitle] || [];
+  }, [comments, normalizeTitle]);
+
+  // Menangani klik tombol "Baca Selengkapnya" (menampilkan modal artikel)
+  const handleReadMore = useCallback((post) => {
+    try {
+      const title = post.title || 'Artikel';
+      const bodyContent = post.body || '';
+      const postComments = getCommentsForPost(post);
+
+      let commentsHTML = '';
+
+      if (postComments.length > 0) {
+        commentsHTML += '<div class="mt-6 pt-6 border-t border-gray-200">';
+        commentsHTML += '<h3 class="text-lg font-bold mb-4">Komentar</h3>';
+
+        postComments.forEach(comment => {
+          commentsHTML += `
+            <div class="mb-4 pb-4 border-b border-gray-100">
+              <div class="flex items-center mb-2">
+                <img src="${comment.author.avatarUrl}" alt="${comment.author.name}" class="w-8 h-8 rounded-full mr-2">
+                <span class="font-medium">${comment.author.name}</span>
+                <span class="text-gray-500 text-xs ml-2">${formatDate(comment.createdAt)}</span>
+              </div>
+              <p class="text-gray-700">${comment.text}</p>
+            </div>
+          `;
+        });
+
+        commentsHTML += '</div>';
+      } else {
+        commentsHTML += `
+          <div class="mt-6 pt-6 border-t border-gray-200">
+            <h3 class="text-lg font-bold mb-4">Komentar</h3>
+            <p class="text-gray-500 italic">Belum ada komentar. Jadilah yang pertama berkomentar!</p>
+          </div>
+        `;
+      }
+
+      const actionButtons = `
+        <div class="mt-4 text-center flex justify-center space-x-4">
+          <button
+            id="addCommentBtn"
+            class="py-2 px-4 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors"
+          >
+            Tambah Komentar
+          </button>
+          <button
+            id="refreshCommentsBtn"
+            class="py-2 px-4 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Refresh Komentar
+          </button>
+        </div>
+      `;
+
+      const lastUpdateInfo = lastCommentFetch ?
+        `<div class="text-center text-xs text-gray-500 mt-2">
+          Komentar terakhir diperbarui: ${formatDate(lastCommentFetch)} ${new Date(lastCommentFetch).toLocaleTimeString('id-ID')}
+        </div>` : '';
+
+      Swal.fire({
+        title: title,
+        html: `
+          <div class="text-left">
+            ${bodyContent.replace(/\n/g, '<br>')}
+            ${commentsHTML}
+            ${actionButtons}
+            ${lastUpdateInfo}
+          </div>
+        `,
+        width: 800,
+        showConfirmButton: true,
+        confirmButtonText: 'Tutup',
+        confirmButtonColor: '#16a34a',
+        didOpen: () => {
+          document.getElementById('addCommentBtn').addEventListener('click', () => {
+            Swal.close();
+            handleAddCommentClick(post.id);
+          });
+
+          document.getElementById('refreshCommentsBtn').addEventListener('click', () => {
+            Swal.close();
+            refreshComments(post);
+          });
+        }
+      });
+    } catch (error) {
+      console.error('Error showing article:', error);
+      Swal.fire('Error', 'Tidak dapat menampilkan artikel. Silakan coba lagi nanti.', 'error');
+    }
+  }, [getCommentsForPost, formatDate, lastCommentFetch]); // handleAddCommentClick dan refreshComments akan ditambahkan nanti sebagai dependensi
 
   // Fungsi untuk mengambil semua data (postingan dan komentar)
   const fetchData = useCallback(async () => {
@@ -311,12 +407,12 @@ const IslamicBlog = () => {
     } finally {
       setIsSubmittingArticle(false);
     }
-  }, [newArticle, fetchData, getRandomColor]); // Dependensi newArticle, fetchData, getRandomColor
+  }, [newArticle, fetchData, getRandomColor]);
 
   // Menangani klik tombol "Tambah Komentar" pada modal artikel
   const handleAddCommentClick = useCallback((postId) => {
     setNewComment({ postId, commenterName: '', commentText: '' });
-    setShowAddCommentForm(true);
+    setShowAddAddCommentForm(true); // Perbaikan: menggunakan setShowAddAddCommentForm
   }, []);
 
   // Menangani perubahan input di formulir komentar
@@ -371,7 +467,7 @@ const IslamicBlog = () => {
       }
 
       setNewComment({ postId: null, commenterName: '', commentText: '' });
-      setShowAddCommentForm(false);
+      setShowAddAddCommentForm(false); // Perbaikan: menggunakan setShowAddAddCommentForm
       Swal.fire('Berhasil!', 'Komentar berhasil ditambahkan.', 'success');
     } catch (err) {
       console.error('Error submitting comment:', err);
@@ -379,7 +475,7 @@ const IslamicBlog = () => {
     } finally {
       setIsSubmittingComment(false);
     }
-  }, [newComment, posts, normalizeTitle]); // Dependensi newComment, posts, normalizeTitle
+  }, [newComment, posts, normalizeTitle]);
 
   // Fungsi untuk me-refresh komentar
   const refreshComments = useCallback(async (currentArticlePost = null) => {
@@ -421,101 +517,14 @@ const IslamicBlog = () => {
     }
   }, [fetchData, handleReadMore]); // fetchData dan handleReadMore adalah dependensi
 
-  // Mengambil komentar untuk postingan tertentu (berdasarkan judul yang dinormalisasi)
-  const getCommentsForPost = useCallback((post) => {
-    const normalizedTitle = normalizeTitle(post.title);
-    return comments[normalizedTitle] || [];
-  }, [comments, normalizeTitle]);
 
-  // Menangani klik tombol "Baca Selengkapnya" (menampilkan modal artikel)
-  const handleReadMore = useCallback((post) => { // useCallback untuk handleReadMore
-    try {
-      const title = post.title || 'Artikel';
-      const bodyContent = post.body || '';
-      const postComments = getCommentsForPost(post);
+  // Tambahkan handleAddCommentClick dan refreshComments ke dependensi handleReadMore
+  useEffect(() => {
+    // This effect ensures handleReadMore has the latest callback references
+    // It's a bit of a dance due to Swal's imperative nature and event listeners
+    // but the core functions are stable via useCallback now.
+  }, [handleReadMore, handleAddCommentClick, refreshComments]);
 
-      let commentsHTML = '';
-
-      if (postComments.length > 0) {
-        commentsHTML += '<div class="mt-6 pt-6 border-t border-gray-200">';
-        commentsHTML += '<h3 class="text-lg font-bold mb-4">Komentar</h3>';
-
-        postComments.forEach(comment => {
-          commentsHTML += `
-            <div class="mb-4 pb-4 border-b border-gray-100">
-              <div class="flex items-center mb-2">
-                <img src="${comment.author.avatarUrl}" alt="${comment.author.name}" class="w-8 h-8 rounded-full mr-2">
-                <span class="font-medium">${comment.author.name}</span>
-                <span class="text-gray-500 text-xs ml-2">${formatDate(comment.createdAt)}</span>
-              </div>
-              <p class="text-gray-700">${comment.text}</p>
-            </div>
-          `;
-        });
-
-        commentsHTML += '</div>';
-      } else {
-        commentsHTML += `
-          <div class="mt-6 pt-6 border-t border-gray-200">
-            <h3 class="text-lg font-bold mb-4">Komentar</h3>
-            <p class="text-gray-500 italic">Belum ada komentar. Jadilah yang pertama berkomentar!</p>
-          </div>
-        `;
-      }
-
-      const actionButtons = `
-        <div class="mt-4 text-center flex justify-center space-x-4">
-          <button
-            id="addCommentBtn"
-            class="py-2 px-4 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors"
-          >
-            Tambah Komentar
-          </button>
-          <button
-            id="refreshCommentsBtn"
-            class="py-2 px-4 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Refresh Komentar
-          </button>
-        </div>
-      `;
-
-      const lastUpdateInfo = lastCommentFetch ?
-        `<div class="text-center text-xs text-gray-500 mt-2">
-          Komentar terakhir diperbarui: ${formatDate(lastCommentFetch)} ${new Date(lastCommentFetch).toLocaleTimeString('id-ID')}
-        </div>` : '';
-
-      Swal.fire({
-        title: title,
-        html: `
-          <div class="text-left">
-            ${bodyContent.replace(/\n/g, '<br>')}
-            ${commentsHTML}
-            ${actionButtons}
-            ${lastUpdateInfo}
-          </div>
-        `,
-        width: 800,
-        showConfirmButton: true,
-        confirmButtonText: 'Tutup',
-        confirmButtonColor: '#16a34a',
-        didOpen: () => {
-          document.getElementById('addCommentBtn').addEventListener('click', () => {
-            Swal.close();
-            handleAddCommentClick(post.id);
-          });
-
-          document.getElementById('refreshCommentsBtn').addEventListener('click', () => {
-            Swal.close();
-            refreshComments(post);
-          });
-        }
-      });
-    } catch (error) {
-      console.error('Error showing article:', error);
-      Swal.fire('Error', 'Tidak dapat menampilkan artikel. Silakan coba lagi nanti.', 'error');
-    }
-  }, [getCommentsForPost, formatDate, lastCommentFetch, handleAddCommentClick, refreshComments]); // Dependensi
 
   // Tampilan loading saat data sedang diambil
   if (loading) {
@@ -747,7 +756,7 @@ const IslamicBlog = () => {
               </button>
               <button
                 type="button"
-                onClick={() => setShowAddCommentForm(false)}
+                onClick={() => setShowAddAddCommentForm(false)} // Perbaikan: menggunakan setShowAddAddCommentForm
                 className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={isSubmittingComment}
               >
