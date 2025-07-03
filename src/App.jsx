@@ -16,7 +16,8 @@ import Calendar from './pages/Calendar'
 import QiblaDirection from './pages/QiblaDirection'
 import IslamicBlog from './pages/IslamicBlog'
 import NotFound from './pages/NotFound'
-import IslamicQABot from './pages/IslamicQABot' // Import the new AI Q&A component
+import IslamicQABot from './pages/IslamicQABot'
+import TasbihDigital from './pages/TasbihDigital' // Import the new TasbihDigital component
 
 function App() {
   return (
@@ -38,7 +39,8 @@ function App() {
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/prayer" element={<Prayer />} />
           <Route path="/hadith/:bookId/:number" element={<HadithDetail />} />
-          <Route path="/ai-qna" element={<IslamicQABot />} /> {/* New Route for AI Q&A */}
+          <Route path="/ai-qna" element={<IslamicQABot />} />
+          <Route path="/tasbih" element={<TasbihDigital />} /> {/* New Route for Tasbih Digital */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { FaBars, FaTimes, FaChevronDown, FaChevronUp } from 'react-icons/fa'; // Added FaChevronDown, FaChevronUp
-import { motion, AnimatePresence } from 'framer-motion'; // Added AnimatePresence
+import { FaBars, FaTimes, FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -177,7 +177,7 @@ const Navbar = () => {
               <button
                 onClick={toggleToolsDropdown}
                 className={`px-3 py-2 rounded-md font-medium transition-colors flex items-center ${
-                  isToolsDropdownOpen || ['/calendar', '/kiblat', '/prayer', '/ai-qna'].includes(location.pathname)
+                  isToolsDropdownOpen || ['/calendar', '/kiblat', '/prayer', '/ai-qna', '/tasbih'].includes(location.pathname) // Added /tasbih
                     ? 'text-emerald-600 font-semibold bg-emerald-50'
                     : 'text-gray-700 hover:text-emerald-600 hover:bg-gray-50'
                 }`}
@@ -226,6 +226,14 @@ const Navbar = () => {
                         onClick={(e) => { e.preventDefault(); handleNavigation('/ai-qna'); }}
                       >
                         Tanya Jawab AI
+                      </a>
+                      <a
+                        href="/tasbih"
+                        className={`block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-emerald-600 ${isActive('/tasbih') ? 'bg-gray-100 text-emerald-600 font-semibold' : ''}`}
+                        role="menuitem"
+                        onClick={(e) => { e.preventDefault(); handleNavigation('/tasbih'); }}
+                      >
+                        Tasbih Digital
                       </a>
                     </div>
                   </motion.div>
@@ -355,7 +363,7 @@ const Navbar = () => {
                 <button
                   onClick={toggleToolsDropdown}
                   className={`w-full text-left px-3 py-2 rounded-md font-medium transition-colors flex items-center justify-between ${
-                    isToolsDropdownOpen || ['/calendar', '/kiblat', '/prayer', '/ai-qna'].includes(location.pathname)
+                    isToolsDropdownOpen || ['/calendar', '/kiblat', '/prayer', '/ai-qna', '/tasbih'].includes(location.pathname) // Added /tasbih
                       ? 'text-emerald-600 bg-gray-50 font-semibold'
                       : 'text-gray-700 hover:text-emerald-600 hover:bg-gray-50'
                   }`}
@@ -403,6 +411,13 @@ const Navbar = () => {
                         onClick={(e) => { e.preventDefault(); handleNavigation('/ai-qna'); }}
                       >
                         Tanya Jawab AI
+                      </a>
+                      <a
+                        href="/tasbih"
+                        className={`block px-3 py-2 rounded-md text-sm text-gray-700 hover:bg-gray-100 hover:text-emerald-600 ${isActive('/tasbih') ? 'bg-gray-100 text-emerald-600 font-semibold' : ''}`}
+                        onClick={(e) => { e.preventDefault(); handleNavigation('/tasbih'); }}
+                      >
+                        Tasbih Digital
                       </a>
                     </motion.div>
                   )}
