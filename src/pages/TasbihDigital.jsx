@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import Swal from 'sweetalert2'; // Using SweetAlert2 for visual notifications
+import Swal from 'sweetalert2';
 
 const TasbihDigital = () => {
   const [count, setCount] = useState(0);
   const [target, setTarget] = useState(33); // Default target for tasbih
-  const [dzikirText, setDzikirText] = useState("Subhanallah"); // Default dzikir text
+  const [dzikirText, setDzikirText] = useState("Harian Sholat"); // Default dzikir text
   const [showTargetInput, setShowTargetInput] = useState(false);
   const [showDzikirInput, setShowDzikirInput] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(false); // To prevent initial localStorage writes
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Effect to load count, target, and dzikirText from localStorage
   useEffect(() => {
@@ -33,7 +33,7 @@ const TasbihDigital = () => {
     if (savedDzikirText !== null) {
       setDzikirText(savedDzikirText);
     }
-    setIsInitialized(true); // Mark as initialized after loading data
+    setIsInitialized(true);
   }, []);
 
   // Effects to save state to localStorage (only after initialization)
@@ -57,18 +57,25 @@ const TasbihDigital = () => {
 
   const incrementCount = () => {
     setCount(prevCount => {
-      const newCount = prevCount + 1;
-      if (newCount > target) {
+      const nextCount = prevCount + 1; // Hitungan berikutnya setelah diklik
+
+      if (nextCount === target) { // Perubahan utama di sini: cek jika SAMA DENGAN target
         Swal.fire({
-          title: 'Selesai!',
-          text: `Anda telah mencapai target ${target} untuk ${dzikirText}!`,
+          toast: true,
+          position: 'top-end',
+          showConfirmButton: false,
+          timer: 1500,
+          timerProgressBar: true,
           icon: 'success',
-          confirmButtonText: 'OK',
-          confirmButtonColor: '#16a34a'
+          title: `Target ${target} tercapai! Dzikir diset ulang.`,
+          didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer);
+            toast.addEventListener('mouseleave', Swal.resumeTimer);
+          }
         });
-        return 1;
+        return 0; // Langsung reset ke 0 setelah mencapai target
       }
-      return newCount;
+      return nextCount; // Lanjutkan hitungan normal jika belum mencapai target
     });
   };
 
@@ -211,7 +218,6 @@ const TasbihDigital = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.4 }}
-        // Hapus `p-6` dari sini
         className="mt-8 bg-white rounded-2xl shadow-lg max-w-4xl mx-auto"
       >
         {/* Header Petunjuk & Manfaat */}
@@ -221,7 +227,7 @@ const TasbihDigital = () => {
         </div>
 
         {/* Konten Petunjuk & Manfaat: Tambahkan padding ke sini */}
-        <div className="p-6"> {/* Tambahkan kembali padding ke div ini */}
+        <div className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
               <div className="bg-blue-50 p-4 rounded-xl">
                 <div className="flex items-center">
@@ -279,7 +285,7 @@ const TasbihDigital = () => {
                 </p>
               </div>
             </div>
-        </div> {/* End of new div for content padding */}
+        </div>
       </motion.div>
     </div>
   );
