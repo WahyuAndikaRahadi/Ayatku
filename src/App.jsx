@@ -26,24 +26,24 @@ import IslamicDictionary from './pages/IslamicDictionary'; // Tambahkan ini
 
 function App() {
   return (
-    <Scrollbars
-      style={{ width: '100vw', height: '100vh' }}
-      trackYProps={{
-        style: {
-          backgroundColor: '#f1f1f1',
-          width: '8px',
-          right: '0px',
-        }
-      }}
-      thumbYProps={{
-        style: {
-          backgroundColor: '#059669',
-          borderRadius: '4px',
-        }
-      }}
-      thumbMinSize={20}
-      noScrollX={true}
-    >
+    // <Scrollbars
+    //   style={{ width: '100vw', height: '100vh' }}
+    //   trackYProps={{
+    //     style: {
+    //       backgroundColor: '#f1f1f1',
+    //       width: '8px',
+    //       right: '0px',
+    //     }
+    //   }}
+    //   thumbYProps={{
+    //     style: {
+    //       backgroundColor: '#059669',
+    //       borderRadius: '4px',
+    //     }
+    //   }}
+    //   thumbMinSize={20}
+    //   noScrollX={true}
+    // >
       <div className="flex flex-col min-h-screen">
         <Navbar />
         <div className="flex-grow">
@@ -70,7 +70,7 @@ function App() {
         </div>
         <Footer />
       </div>
-    </Scrollbars>
+    // </Scrollbars>
   );
 }
 
