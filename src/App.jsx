@@ -1,6 +1,7 @@
+// App.jsx
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import Scrollbars from 'react-scrollbars-custom'; // Diubah: Impor sebagai default export
+import Scrollbars from 'react-scrollbars-custom';
 
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -21,39 +22,30 @@ import IslamicBlog from './pages/IslamicBlog';
 import NotFound from './pages/NotFound';
 import IslamicQABot from './pages/IslamicQABot';
 import TasbihDigital from './pages/TasbihDigital';
+import IslamicDictionary from './pages/IslamicDictionary'; // Tambahkan ini
 
 function App() {
   return (
-    // Bungkus seluruh konten aplikasi dengan Scrollbars untuk mengaktifkan scrollbar kustom
     <Scrollbars
-      // Mengatur lebar dan tinggi Scrollbars agar mencakup seluruh viewport
       style={{ width: '100vw', height: '100vh' }}
-      // Mengatur styling untuk track (jalur) scrollbar vertikal
       trackYProps={{
         style: {
-          backgroundColor: '#f1f1f1', // Warna abu-abu terang untuk track
-          width: '8px', // Lebar track, bisa disesuaikan agar lebih ramping
-          right: '0px', // Memastikan track berada di sisi kanan
+          backgroundColor: '#f1f1f1',
+          width: '8px',
+          right: '0px',
         }
       }}
-      // Mengatur styling untuk thumb (pegangan) scrollbar vertikal
       thumbYProps={{
         style: {
-          backgroundColor: '#059669', // Warna hijau emerald (Emerald-600)
-          borderRadius: '4px', // Membuat sudut membulat pada thumb
+          backgroundColor: '#059669',
+          borderRadius: '4px',
         }
       }}
-      // Mengatur lebar thumb (pegangan)
-      thumbMinSize={20} // Ukuran minimum thumb (dalam piksel)
-      // Mengatur apakah scrollbar harus selalu terlihat atau hanya saat discroll
-      noScrollX={true} // Pastikan tidak ada scrollbar horizontal
-      // autoHide // Uncomment ini jika Anda ingin scrollbar otomatis tersembunyi saat tidak digunakan
-      // autoHideTimeout={1000} // Waktu sebelum scrollbar tersembunyi (jika autoHide aktif)
-      // autoHideDuration={200} // Durasi animasi penyembunyian
+      thumbMinSize={20}
+      noScrollX={true}
     >
-      {/* Konten utama aplikasi Anda */}
       <div className="flex flex-col min-h-screen">
-        <Navbar /> {/* Navbar Anda yang sudah sticky */}
+        <Navbar />
         <div className="flex-grow">
           <Routes>
             <Route path="/" element={<Home />} />
@@ -72,6 +64,7 @@ function App() {
             <Route path="/hadith/:bookId/:number" element={<HadithDetail />} />
             <Route path="/ai-qna" element={<IslamicQABot />} />
             <Route path="/tasbih" element={<TasbihDigital />} />
+            <Route path="/dictionary" element={<IslamicDictionary />} /> {/* Tambahkan route ini */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </div>

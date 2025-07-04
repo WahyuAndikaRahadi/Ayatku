@@ -1,3 +1,4 @@
+// Navbar.jsx
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { FaBars, FaTimes, FaChevronDown, FaChevronUp } from 'react-icons/fa';
@@ -49,7 +50,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-white shadow-md z-50 sticky top-0"> {/* Tambahkan sticky dan top-0 di sini */}
+    <nav className="bg-white shadow-md z-50 sticky top-0">
       <div className="container-custom mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           {/* Logo and Brand Name */}
@@ -116,7 +117,7 @@ const Navbar = () => {
               <button
                 onClick={toggleContentDropdown}
                 className={`px-3 py-2 rounded-md font-medium transition-colors flex items-center ${
-                  isContentDropdownOpen || ['/hadith', '/asmaulhusna', '/doa', '/blog'].includes(location.pathname)
+                  isContentDropdownOpen || ['/hadith', '/asmaulhusna', '/doa', '/blog', '/dictionary'].includes(location.pathname) // Tambahkan '/dictionary' di sini
                     ? 'text-emerald-600 font-semibold bg-emerald-50'
                     : 'text-gray-700 hover:text-emerald-600 hover:bg-gray-50'
                 }`}
@@ -165,6 +166,14 @@ const Navbar = () => {
                         onClick={(e) => { e.preventDefault(); handleNavigation('/blog'); }}
                       >
                         Artikel Islami
+                      </a>
+                      <a
+                        href="/dictionary"
+                        className={`block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-emerald-600 ${isActive('/dictionary') ? 'bg-gray-100 text-emerald-600 font-semibold' : ''}`}
+                        role="menuitem"
+                        onClick={(e) => { e.preventDefault(); handleNavigation('/dictionary'); }}
+                      >
+                        Kamus Islam {/* Tambahkan link ini */}
                       </a>
                     </div>
                   </motion.div>
@@ -308,7 +317,7 @@ const Navbar = () => {
                 <button
                   onClick={toggleContentDropdown}
                   className={`w-full text-left px-3 py-2 rounded-md font-medium transition-colors flex items-center justify-between ${
-                    isContentDropdownOpen || ['/hadith', '/asmaulhusna', '/doa', '/blog'].includes(location.pathname)
+                    isContentDropdownOpen || ['/hadith', '/asmaulhusna', '/doa', '/blog', '/dictionary'].includes(location.pathname) // Tambahkan '/dictionary' di sini
                       ? 'text-emerald-600 bg-gray-50 font-semibold'
                       : 'text-gray-700 hover:text-emerald-600 hover:bg-gray-50'
                   }`}
@@ -352,6 +361,13 @@ const Navbar = () => {
                         onClick={(e) => { e.preventDefault(); handleNavigation('/blog'); }}
                       >
                         Artikel Islami
+                      </a>
+                      <a
+                        href="/dictionary"
+                        className={`block px-3 py-2 rounded-md text-sm text-gray-700 hover:bg-gray-100 hover:text-emerald-600 ${isActive('/dictionary') ? 'bg-gray-100 text-emerald-600 font-semibold' : ''}`}
+                        onClick={(e) => { e.preventDefault(); handleNavigation('/dictionary'); }}
+                      >
+                        Kamus Islam {/* Tambahkan link ini */}
                       </a>
                     </motion.div>
                   )}

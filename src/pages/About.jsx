@@ -1,5 +1,5 @@
-import { motion } from 'framer-motion'
-import { FaQuran, FaHeart, FaGithub, FaBookOpen, FaClock, FaQuoteRight, FaStar, FaCalendarAlt, FaCompass, FaComment } from 'react-icons/fa'
+import { motion } from 'framer-motion';
+import { FaQuran, FaHeart, FaGithub, FaBookOpen, FaClock, FaQuoteRight, FaStar, FaCalendarAlt, FaCompass, FaComment, FaQuestionCircle, FaHandshake, FaBook } from 'react-icons/fa';
 
 const About = () => {
   // Animation variants
@@ -7,16 +7,16 @@ const About = () => {
     initial: { opacity: 0, y: 20 },
     animate: { opacity: 1, y: 0 },
     transition: { duration: 0.5 }
-  }
-  
+  };
+
   const staggerContainer = {
     animate: {
       transition: {
         staggerChildren: 0.1
       }
     }
-  }
-  
+  };
+
   const features = [
     {
       icon: <FaQuran />,
@@ -57,12 +57,27 @@ const About = () => {
       icon: <FaBookOpen />,
       title: "Artikel Islami",
       description: "Artikel-artikel bermanfaat seputar kajian Islam untuk memperdalam pengetahuan agama."
+    },
+    {
+      icon: <FaQuestionCircle />, // Icon for AI Q&A
+      title: "AI Q&A (Tanya Jawab AI)",
+      description: "Fitur tanya jawab berbasis kecerdasan buatan untuk mendapatkan jawaban cepat seputar Islam."
+    },
+    {
+      icon: <FaHandshake />, // Icon for Digital Tasbih
+      title: "Tasbih Digital",
+      description: "Tasbih digital yang mudah digunakan untuk membantu Anda berzikir dan menghitung bacaan."
+    },
+    {
+      icon: <FaBook />, // Icon for Islamic Dictionary
+      title: "Kamus Islam",
+      description: "Kamus istilah-istilah Islam lengkap dengan makna, kategori, dan contoh penggunaan."
     }
-  ]
+  ];
 
   return (
     <div className="container-custom py-12">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -74,9 +89,11 @@ const About = () => {
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ duration: 0.5, type: "spring" }}
-            className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6"
+            // Increased size from w-20 h-20 to w-32 h-32
+            className="w-32 h-32 flex items-center justify-center mx-auto mb-6"
           >
-            <FaQuran className="text-primary text-4xl" />
+            {/* Replaced FaQuran with img tag */}
+            <img src="/icons/ayatku.png" alt="Ayatku Logo" className="w-full h-full object-contain p-2" />
           </motion.div>
           <h1 className="text-3xl font-bold mb-3 text-gray-800">Tentang Ayatku</h1>
           <div className="w-20 h-1 bg-primary mx-auto mb-6"></div>
@@ -96,12 +113,12 @@ const About = () => {
           </p>
 
           <h2 className="text-2xl font-bold mt-10 mb-6 text-gray-800">Visi & Misi</h2>
-          
+
           <div className="bg-primary/5 p-6 rounded-lg">
             <h3 className="font-bold text-primary mb-2">Visi</h3>
             <p>Menjadi platform islami terdepan yang memudahkan umat Muslim Indonesia dalam beribadah dan memperdalam ilmu agama melalui teknologi yang inovatif dan ramah pengguna.</p>
           </div>
-          
+
           <div className="bg-secondary/5 p-6 rounded-lg">
             <h3 className="font-bold text-secondary mb-2">Misi</h3>
             <ul className="list-disc pl-6 space-y-2">
@@ -116,15 +133,15 @@ const About = () => {
 
         {/* Feature Section */}
         <h2 className="text-2xl font-bold mb-8 text-gray-800">Fitur Unggulan Ayatku</h2>
-        
-        <motion.div 
+
+        <motion.div
           variants={staggerContainer}
           initial="initial"
           animate="animate"
           className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12"
         >
           {features.map((feature, index) => (
-            <motion.div 
+            <motion.div
               key={index}
               variants={fadeIn}
               className="border border-gray-100 rounded-lg p-5 hover:shadow-md transition-shadow flex"
@@ -145,7 +162,7 @@ const About = () => {
         <p className="mb-4">
           Ayatku dibangun menggunakan teknologi web modern yang fokus pada performa dan pengalaman pengguna:
         </p>
-        
+
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-12">
           <div className="bg-gray-50 p-4 rounded-lg">
             <h3 className="font-bold mb-2 text-gray-800">Frontend</h3>
@@ -157,7 +174,7 @@ const About = () => {
               <li>• Framer Motion</li>
             </ul>
           </div>
-          
+
           <div className="bg-gray-50 p-4 rounded-lg">
             <h3 className="font-bold mb-2 text-gray-800">Backend & Data</h3>
             <ul className="text-gray-600 space-y-1 text-sm">
@@ -166,9 +183,10 @@ const About = () => {
               <li>• Open-source Hadith API</li>
               <li>• Open-source Prayer Times API</li>
               <li>• Geolocation Services</li>
+              <li>• Gemini API Integration</li> {/* Added Gemini API */}
             </ul>
           </div>
-          
+
           <div className="bg-gray-50 p-4 rounded-lg">
             <h3 className="font-bold mb-2 text-gray-800">Pengalaman Pengguna</h3>
             <ul className="text-gray-600 space-y-1 text-sm">
@@ -195,9 +213,9 @@ const About = () => {
             Dibuat dengan <FaHeart className="inline text-red-500 mx-1" /> oleh Wahyu Andika Rahadi untuk umat Islam Indonesia
           </p>
           <div className="flex justify-center space-x-4">
-            <a 
-              href="https://github.com/WahyuAndikaRahadi/Ayatku" 
-              target="_blank" 
+            <a
+              href="https://github.com/WahyuAndikaRahadi/Ayatku"
+              target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center text-primary hover:underline"
             >
@@ -207,7 +225,7 @@ const About = () => {
         </div>
       </motion.div>
     </div>
-  )
-}
+  );
+};
 
-export default About
+export default About;

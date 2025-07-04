@@ -8,29 +8,65 @@
     <link rel="icon" type="image/png" href="/icons/ayatku.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Milonga&display=swap" rel="stylesheet" />
+    <!-- Preload fonts for better performance (LCP) -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Milonga&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Milonga&display=swap" /></noscript>
 
-    <!-- Primary SEO -->
-    <meta name="description" content="Platform Islami gratis untuk Muslim Indonesia: baca Al-Qur'an digital, doa harian, jadwal sholat, artikel Islami, Asmaul Husna, arah kiblat, dan tasbih digital." />
-    <meta name="keywords" content="Ayatku, Al-Qur'an digital, doa harian, jadwal sholat, arah kiblat, Asmaul Husna, artikel Islami, Islam, Muslim, website Islami, web Muslim, platform Islami Indonesia" />
+    <!-- Primary SEO Meta Tags -->
+    <meta name="description" content="Ayatku adalah platform Islami lengkap dan gratis untuk Muslim Indonesia. Akses Al-Qur'an digital, hadith, doa harian, jadwal sholat, Asmaul Husna, arah kiblat, tasbih digital, dan artikel Islami bermanfaat." />
+    <meta name="keywords" content="Ayatku, Al-Quran digital, doa harian, jadwal sholat, arah kiblat, Asmaul Husna, artikel Islami, Islam, Muslim, website Islami, aplikasi Muslim, platform Islami Indonesia, hadith shahih, tasbih digital, kamus Islam, AI Q&A Islam" />
     <meta name="author" content="Tim Ayatku" />
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href="https://ayatku.my.id/" />
 
-    <!-- Open Graph / Facebook -->
+    <!-- Open Graph / Facebook Meta Tags -->
     <meta property="og:title" content="Ayatku | Platform Islami Digital Indonesia" />
-    <meta property="og:description" content="Baca Qur’an, doa harian, artikel Islam, jadwal sholat, dan fitur Islami lengkap lainnya. Semua dalam satu platform gratis: Ayatku." />
+    <meta property="og:description" content="Baca Al-Qur'an, hadith, doa harian, artikel Islam, jadwal sholat, Asmaul Husna, arah kiblat, tasbih digital, dan fitur Islami lengkap lainnya. Semua dalam satu platform gratis: Ayatku." />
     <meta property="og:url" content="https://ayatku.my.id/" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Ayatku" />
     <meta property="og:image" content="https://ayatku.my.id/images/og-image.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="id_ID" />
 
-    <!-- Twitter Card -->
+    <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Ayatku | Platform Islami Digital Indonesia" />
-    <meta name="twitter:description" content="Platform Islami gratis untuk Muslim: baca Qur’an, doa harian, artikel Islam, dan fitur bermanfaat lainnya." />
+    <meta name="twitter:description" content="Platform Islami gratis untuk Muslim: baca Al-Qur'an, hadith, doa harian, artikel Islam, jadwal sholat, dan fitur bermanfaat lainnya." />
     <meta name="twitter:image" content="https://ayatku.my.id/images/twitter-card-image.jpg" />
     <meta name="twitter:creator" content="@AyatkuOfficial" />
+    <meta name="twitter:site" content="@AyatkuOfficial" />
+
+    <!-- Schema.org Structured Data for Rich Snippets -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Ayatku",
+      "url": "https://ayatku.my.id/",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://ayatku.my.id/search?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      },
+      "description": "Platform Islami lengkap dan gratis untuk Muslim Indonesia: baca Al-Qur'an digital, hadith, doa harian, jadwal sholat, artikel Islami, Asmaul Husna, arah kiblat, dan tasbih digital."
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Ayatku",
+      "url": "https://ayatku.my.id/",
+      "logo": "https://ayatku.my.id/icons/ayatku.png",
+      "sameAs": [
+        "https://github.com/WahyuAndikaRahadi/Ayatku"
+        // Tambahkan tautan media sosial atau profil lain di sini jika ada
+      ]
+    }
+    </script>
+
   </head>
   <body>
     <div id="root"></div>
