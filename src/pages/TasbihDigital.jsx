@@ -9,6 +9,8 @@ const TasbihDigital = () => {
   const [showTargetInput, setShowTargetInput] = useState(false);
   const [showDzikirInput, setShowDzikirInput] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  // State baru untuk melacak apakah notifikasi target sudah ditampilkan
+  const [hasNotifiedTargetReached, setHasNotifiedTargetReached] = useState(false);
 
   // Effect to load count, target, and dzikirText from localStorage
   useEffect(() => {
@@ -59,23 +61,26 @@ const TasbihDigital = () => {
     setCount(prevCount => {
       const nextCount = prevCount + 1; // Hitungan berikutnya setelah diklik
 
-      if (nextCount === target) { // Perubahan utama di sini: cek jika SAMA DENGAN target
+      // Notifikasi hanya akan muncul jika hitungan SAMA PERSIS dengan target
+      // DAN notifikasi belum ditampilkan pada siklus ini.
+      if (nextCount === target && !hasNotifiedTargetReached) {
         Swal.fire({
           toast: true,
           position: 'top-end',
           showConfirmButton: false,
-          timer: 1500,
+          timer: 3000, // Durasi notifikasi lebih lama
           timerProgressBar: true,
           icon: 'success',
-          title: `Target ${target} tercapai! Dzikir diset ulang.`,
+          title: `Alhamdulillah! Anda sudah mencapai target dzikir ${target} kali.`, // Pesan pujian Islami
+          text: 'Semoga Allah menerima amalan Anda.', // Tambahan kata-kata pujian
           didOpen: (toast) => {
             toast.addEventListener('mouseenter', Swal.stopTimer);
             toast.addEventListener('mouseleave', Swal.resumeTimer);
           }
         });
-        return 0; // Langsung reset ke 0 setelah mencapai target
+        setHasNotifiedTargetReached(true); // Set flag ke true setelah notifikasi ditampilkan
       }
-      return nextCount; // Lanjutkan hitungan normal jika belum mencapai target
+      return nextCount; // Lanjutkan hitungan normal
     });
   };
 
@@ -92,6 +97,7 @@ const TasbihDigital = () => {
     }).then((result) => {
       if (result.isConfirmed) {
         setCount(0);
+        setHasNotifiedTargetReached(false); // Reset flag saat hitungan direset
         Swal.fire(
           'Direset!',
           'Hitungan tasbih Anda telah direset.',
@@ -103,11 +109,19 @@ const TasbihDigital = () => {
 
   const handleTargetChange = (e) => {
     const val = e.target.value;
-    setTarget(val === '' ? 0 : Math.max(0, parseInt(val, 10) || 0));
+    const newTargetValue = val === '' ? 0 : Math.max(0, parseInt(val, 10) || 0);
+    // Reset notifikasi jika target berubah, karena ini dianggap siklus baru
+    if (newTargetValue !== target) {
+      setHasNotifiedTargetReached(false);
+    }
+    setTarget(newTargetValue);
   };
 
   const handleTargetBlur = () => {
-    if (target === 0) setTarget(33);
+    if (target === 0) {
+      setTarget(33);
+      setHasNotifiedTargetReached(false); // Reset notifikasi jika target direset ke default
+    }
     setShowTargetInput(false);
   };
 

@@ -49,7 +49,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-white shadow-md z-50 relative">
+    <nav className="bg-white shadow-md z-50 sticky top-0"> {/* Tambahkan sticky dan top-0 di sini */}
       <div className="container-custom mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           {/* Logo and Brand Name */}
@@ -177,7 +177,7 @@ const Navbar = () => {
               <button
                 onClick={toggleToolsDropdown}
                 className={`px-3 py-2 rounded-md font-medium transition-colors flex items-center ${
-                  isToolsDropdownOpen || ['/calendar', '/kiblat', '/prayer', '/ai-qna', '/tasbih'].includes(location.pathname) // Added /tasbih
+                  isToolsDropdownOpen || ['/calendar', '/kiblat', '/prayer', '/ai-qna', '/tasbih'].includes(location.pathname)
                     ? 'text-emerald-600 font-semibold bg-emerald-50'
                     : 'text-gray-700 hover:text-emerald-600 hover:bg-gray-50'
                 }`}
@@ -363,7 +363,7 @@ const Navbar = () => {
                 <button
                   onClick={toggleToolsDropdown}
                   className={`w-full text-left px-3 py-2 rounded-md font-medium transition-colors flex items-center justify-between ${
-                    isToolsDropdownOpen || ['/calendar', '/kiblat', '/prayer', '/ai-qna', '/tasbih'].includes(location.pathname) // Added /tasbih
+                    isToolsDropdownOpen || ['/calendar', '/kiblat', '/prayer', '/ai-qna', '/tasbih'].includes(location.pathname)
                       ? 'text-emerald-600 bg-gray-50 font-semibold'
                       : 'text-gray-700 hover:text-emerald-600 hover:bg-gray-50'
                   }`}
