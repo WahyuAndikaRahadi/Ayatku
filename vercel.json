@@ -1,14 +1,23 @@
 {
   "rewrites": [
-    {
-      "source": "/api/:path*",
-      "destination": "/api/index.js" 
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
-  ],
+  {
+    "source": "/api/:path*",
+    "destination": "/api/index.js"
+  },
+  {
+    "source": "/sitemap.xml",
+    "destination": "/sitemap.xml"
+  },
+  {
+    "source": "/robots.txt",
+    "destination": "/robots.txt"
+  },
+  {
+    "source": "/(.*)",
+    "destination": "/index.html"
+  }
+],
+
   "builds": [
     {
       "src": "api/index.js",
