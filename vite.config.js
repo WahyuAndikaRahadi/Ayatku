@@ -19,31 +19,31 @@ export default defineConfig({
         start_url: '/',
         icons: [
           {
-            // Pastikan file ini sudah di-resize menjadi tepat 192x192 piksel
-            src: 'icons/icon-192.png', 
-            sizes: '192x192',
+            // Menggunakan ukuran asli 421x434 agar tidak error "match specified size"
+            src: 'icons/ayatku.png', 
+            sizes: '421x434', 
             type: 'image/png',
             purpose: 'any'
           },
           {
-            // Pastikan file ini sudah di-resize menjadi tepat 512x512 piksel
-            src: 'icons/icon-512.png', 
-            sizes: '512x512',
+            src: 'icons/ayatku.png', 
+            sizes: '421x434',
             type: 'image/png',
-            purpose: 'maskable' // Rekomendasi untuk Android
+            purpose: 'maskable' 
           }
         ],
-        // Menambahkan screenshot untuk memperbaiki error "Richer PWA Install UI"
         screenshots: [
           {
+            // Disesuaikan dengan Actual Size: 1875x911 px di log Anda
             src: "screenshots/desktop.png",
-            sizes: "1280x720",
+            sizes: "1875x911", 
             type: "image/png",
             form_factor: "wide"
           },
           {
+            // Disesuaikan dengan Actual Size: 580x793 px di log Anda
             src: "screenshots/mobile.png",
-            sizes: "720x1280",
+            sizes: "580x793", 
             type: "image/png"
           }
         ]
