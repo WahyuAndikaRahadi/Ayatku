@@ -20,14 +20,14 @@ export default defineConfig({
         icons: [
           {
             // Gunakan ikon yang sudah di-resize menjadi kotak sempurna 192x192
-            src: 'icons/icon-192.png', 
+            src: 'icons/ayatku-192.png', 
             sizes: '192x192', 
             type: 'image/png',
             purpose: 'any'
           },
           {
             // Gunakan ikon yang sudah di-resize menjadi kotak sempurna 512x512
-            src: 'icons/icon-512.png', 
+            src: 'icons/ayatku-512.png', 
             sizes: '512x512',
             type: 'image/png',
             purpose: 'maskable' 
