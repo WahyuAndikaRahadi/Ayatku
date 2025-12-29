@@ -44,7 +44,7 @@ export default defineConfig({
           },
           {
             src: "screenshots/mobile.png",
-            sizes: "580x793", // Sesuai log 'Actual Size' Anda
+            sizes: "1080x1920", // Sesuai log 'Actual Size' Anda
             type: "image/png",
             label: "Tampilan Mobile Ayatku",
             form_factor: "narrow"
