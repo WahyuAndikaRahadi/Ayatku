@@ -24,14 +24,14 @@ export default defineConfig({
             src: 'icons/ayatku-192.png', 
             sizes: '192x192', 
             type: 'image/png',
-            purpose: 'any'
+            purpose: 'any maskable'
           },
           {
             // Gunakan ikon yang sudah di-resize menjadi kotak sempurna 512x512
             src: 'icons/ayatku-512.png', 
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'maskable' 
+            purpose: 'any maskable'
           }
         ],
         screenshots: [
@@ -39,12 +39,15 @@ export default defineConfig({
             src: "screenshots/desktop.png",
             sizes: "1875x911", // Sesuai log 'Actual Size' Anda
             type: "image/png",
+            label: "Tampilan Desktop Ayatku",
             form_factor: "wide"
           },
           {
             src: "screenshots/mobile.png",
             sizes: "580x793", // Sesuai log 'Actual Size' Anda
-            type: "image/png"
+            type: "image/png",
+            label: "Tampilan Mobile Ayatku",
+            form_factor: "narrow"
           }
         ]
       },
