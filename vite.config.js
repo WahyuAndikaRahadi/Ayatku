@@ -19,31 +19,30 @@ export default defineConfig({
         start_url: '/',
         icons: [
           {
-            // Menggunakan ukuran asli 421x434 agar tidak error "match specified size"
-            src: 'icons/ayatku.png', 
-            sizes: '421x434', 
+            // Gunakan ikon yang sudah di-resize menjadi kotak sempurna 192x192
+            src: 'icons/icon-192.png', 
+            sizes: '192x192', 
             type: 'image/png',
             purpose: 'any'
           },
           {
-            src: 'icons/ayatku.png', 
-            sizes: '421x434',
+            // Gunakan ikon yang sudah di-resize menjadi kotak sempurna 512x512
+            src: 'icons/icon-512.png', 
+            sizes: '512x512',
             type: 'image/png',
             purpose: 'maskable' 
           }
         ],
         screenshots: [
           {
-            // Disesuaikan dengan Actual Size: 1875x911 px di log Anda
             src: "screenshots/desktop.png",
-            sizes: "1875x911", 
+            sizes: "1875x911", // Sesuai log 'Actual Size' Anda
             type: "image/png",
             form_factor: "wide"
           },
           {
-            // Disesuaikan dengan Actual Size: 580x793 px di log Anda
             src: "screenshots/mobile.png",
-            sizes: "580x793", 
+            sizes: "580x793", // Sesuai log 'Actual Size' Anda
             type: "image/png"
           }
         ]
