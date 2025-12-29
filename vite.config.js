@@ -9,6 +9,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'icons/*.png'],
       manifest: {
+        id: '/',
         name: 'Ayatku | Al-Qur’an Digital & Jadwal Sholat',
         short_name: 'Ayatku',
         description: 'Al-Qur’an Digital, Doa Harian, Jadwal Sholat & Artikel Islami',
