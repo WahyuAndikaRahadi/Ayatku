@@ -24,14 +24,14 @@ export default defineConfig({
             src: 'icons/ayatku-192.png', 
             sizes: '192x192', 
             type: 'image/png',
-            purpose: 'any maskable'
+            purpose: 'any'
           },
           {
             // Gunakan ikon yang sudah di-resize menjadi kotak sempurna 512x512
             src: 'icons/ayatku-512.png', 
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any maskable'
+            purpose: 'maskable'
           }
         ],
         screenshots: [
