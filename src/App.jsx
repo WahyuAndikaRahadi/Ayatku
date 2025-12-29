@@ -1,7 +1,6 @@
 // App.jsx
-import React from 'react';
-import { Routes, Route } from 'react-router-dom';
-import Scrollbars from 'react-scrollbars-custom';
+import React, { useEffect } from 'react';
+import { Routes, Route, useLocation } from 'react-router-dom';
 
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -22,55 +21,42 @@ import IslamicBlog from './pages/IslamicBlog';
 import NotFound from './pages/NotFound';
 import IslamicQABot from './pages/IslamicQABot';
 import TasbihDigital from './pages/TasbihDigital';
-import IslamicDictionary from './pages/IslamicDictionary'; // Tambahkan ini
+import IslamicDictionary from './pages/IslamicDictionary';
 
 function App() {
+  const { pathname } = useLocation();
+  
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
   return (
-    // <Scrollbars
-    //   style={{ width: '100vw', height: '100vh' }}
-    //   trackYProps={{
-    //     style: {
-    //       backgroundColor: '#f1f1f1',
-    //       width: '8px',
-    //       right: '0px',
-    //     }
-    //   }}
-    //   thumbYProps={{
-    //     style: {
-    //       backgroundColor: '#059669',
-    //       borderRadius: '4px',
-    //     }
-    //   }}
-    //   thumbMinSize={20}
-    //   noScrollX={true}
-    // >
-      <div className="flex flex-col min-h-screen">
-        <Navbar />
-        <div className="flex-grow">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/quran" element={<Quran />} />
-            <Route path="/surah/:id" element={<SurahDetail />} />
-            <Route path="/tafsir/:id" element={<TafsirDetail />} />
-            <Route path="/doa/:category/:id"  element={<DoaDetail />} />
-            <Route path="/hadith" element={<Hadith />} />
-            <Route path="/asmaulhusna" element={<AsmaulHusna />} />
-            <Route path="/doa" element={<Doa />} />
-            <Route path="/blog" element={<IslamicBlog />} />
-            <Route path="/kiblat" element={<QiblaDirection />} />
-            <Route path="/calendar" element={<Calendar />} />
-            <Route path="/prayer" element={<Prayer />} />
-            <Route path="/hadith/:bookId/:number" element={<HadithDetail />} />
-            <Route path="/ai-qna" element={<IslamicQABot />} />
-            <Route path="/tasbih" element={<TasbihDigital />} />
-            <Route path="/dictionary" element={<IslamicDictionary />} /> {/* Tambahkan route ini */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </div>
-        <Footer />
+    <div className="flex flex-col min-h-screen">
+      <Navbar />
+      <div className="flex-grow">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/quran" element={<Quran />} />
+          <Route path="/surah/:id" element={<SurahDetail />} />
+          <Route path="/tafsir/:id" element={<TafsirDetail />} />
+          <Route path="/doa/:category/:id" element={<DoaDetail />} />
+          <Route path="/hadith" element={<Hadith />} />
+          <Route path="/asmaulhusna" element={<AsmaulHusna />} />
+          <Route path="/doa" element={<Doa />} />
+          <Route path="/blog" element={<IslamicBlog />} />
+          <Route path="/kiblat" element={<QiblaDirection />} />
+          <Route path="/calendar" element={<Calendar />} />
+          <Route path="/prayer" element={<Prayer />} />
+          <Route path="/hadith/:bookId/:number" element={<HadithDetail />} />
+          <Route path="/ai-qna" element={<IslamicQABot />} />
+          <Route path="/tasbih" element={<TasbihDigital />} />
+          <Route path="/dictionary" element={<IslamicDictionary />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
       </div>
-    // </Scrollbars>
+      <Footer />
+    </div>
   );
 }
 
