@@ -1,0 +1,24 @@
+{
+  "short_name": "Ayatku",
+  "name": "Ayatku | Al-Qur’an Digital & Jadwal Sholat",
+  "description": "Platform Islami Lengkap: Al-Qur'an, Doa, dan Jadwal Sholat",
+  "icons": [
+    {
+      "src": "/icons/ayatku.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/ayatku.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#ffffff",
+  "background_color": "#ffffff",
+  "orientation": "portrait"
+}
