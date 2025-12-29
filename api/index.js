@@ -3,6 +3,10 @@ import pg from 'pg';
 import cors from 'cors';
 import dotenv from 'dotenv';
 
+
+
+console.log("DATABASE_URL =>", process.env.DATABASE_URL);
+
 // Muat variabel lingkungan dari .env jika bukan di lingkungan produksi
 if (process.env.NODE_ENV !== 'production') {
   dotenv.config();
@@ -11,7 +15,7 @@ if (process.env.NODE_ENV !== 'production') {
 const { Pool } = pg;
 
 const app = express();
-
+    
 // Konfigurasi koneksi database PostgreSQL menggunakan Pool
 // Connection string diambil dari variabel lingkungan DATABASE_URL
 const pool = new Pool({

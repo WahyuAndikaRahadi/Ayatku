@@ -22,7 +22,7 @@ const IslamicQABot = () => {
 
     const fetchGeminiResponse = async (prompt, key) => {
         // Using gemini-2.0-flash as per your request
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`; 
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`; 
 
         // Using fetch API
         const res = await fetch(url, {
